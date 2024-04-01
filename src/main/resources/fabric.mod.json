@@ -1,0 +1,36 @@
+{
+	"schemaVersion": 1,
+	"id": "cwps",
+	"version": "${version}",
+	"name": "cimple waypoint system",
+	"description": "A simple waypoint system.",
+	"authors": [
+		"cimadev"
+	],
+	"contact": {
+		"homepage": "",
+		"sources": ""
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/cimple-waypoint-system/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.cimadev.cimpleWaypointSystem.Main"
+		],
+		"client": [
+			"com.cimadev.cimpleWaypointSystemClient.client"
+		]
+	},
+	"mixins": [
+	],
+	"depends": {
+		"fabricloader": ">=0.14.21",
+		"minecraft": "~1.20.1",
+		"java": ">=17",
+		"fabric-api": "*"
+	},
+    "suggests": {
+		"another-mod": "*"
+	}
+}
