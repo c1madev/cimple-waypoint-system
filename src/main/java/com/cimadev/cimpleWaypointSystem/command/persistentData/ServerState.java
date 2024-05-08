@@ -1,5 +1,7 @@
 package com.cimadev.cimpleWaypointSystem.command.persistentData;
 
+import com.cimadev.cimpleWaypointSystem.Main;
+import com.mojang.datafixers.types.Type;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -10,7 +12,6 @@ import net.minecraft.world.World;
 import java.util.*;
 
 public class ServerState extends PersistentState {
-
     private HashMap<WaypointKey, Waypoint> worldWideWaypoints = new HashMap<>();
     private HashMap<UUID, PlayerHome> playerHomes = new HashMap<>();
     private HashMap<String, OfflinePlayer> playersByName = new HashMap<>();
@@ -191,14 +192,19 @@ public class ServerState extends PersistentState {
         return serverState;
     }
 
+    private final static Type<ServerState> type = new Type<>(
+            ServerState::new,
+            ServerState::createFromNbt,
+            null
+    );
+
     public static ServerState getServerState(MinecraftServer server) {
         PersistentStateManager persistentStateManager = server
                 .getWorld(World.OVERWORLD).getPersistentStateManager();
 
-        ServerState serverState = persistentStateManager.getOrCreate(
-                ServerState::createFromNbt,
-                ServerState::new,
-                "cimple-waypoint-system");
-        return serverState;
+        return persistentStateManager.getOrCreate(
+                type,
+                Main.MOD_ID
+        );
     }
 }
