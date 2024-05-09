@@ -1,7 +1,5 @@
-package com.cimadev.cimpleWaypointSystem.command;
+package com.cimadev.cimpleWaypointSystem.command.tpa;
 
-import com.cimadev.cimpleWaypointSystem.command.tpa.TeleportRequest;
-import com.cimadev.cimpleWaypointSystem.command.tpa.TeleportRequestManager;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;

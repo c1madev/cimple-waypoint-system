@@ -1,6 +1,7 @@
 package com.cimadev.cimpleWaypointSystem.registry;
 
 import com.cimadev.cimpleWaypointSystem.command.*;
+import com.cimadev.cimpleWaypointSystem.command.tpa.TpaCommand;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 
 public class ModRegistries {
