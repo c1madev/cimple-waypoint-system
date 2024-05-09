@@ -13,7 +13,7 @@ import net.minecraft.util.Formatting;
 public class TpacceptCommand {
     private static final String COMMAND_NAME = "tpaccept";
     private static final Text NO_TPA_ERROR_MESSAGE =
-            Text.literal("There is no").formatted(Formatting.RED)
+            Text.literal("There is no ").formatted(Formatting.RED)
             .append(Text.literal("/tpa").formatted(Formatting.YELLOW))
             .append(Text.literal(" request open for you").formatted(Formatting.RED));
 
@@ -29,7 +29,7 @@ public class TpacceptCommand {
     }
 
     private static int acceptTeleport(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        TeleportRequest request = TeleportRequestManager.getInstance().getRequest(
+        TeleportRequest request = TeleportRequestManager.getInstance().removeRequest(
                 context.getSource().getPlayerOrThrow()
         );
         if (request == null) {
@@ -37,7 +37,7 @@ public class TpacceptCommand {
             return 0;
         }
         request.perform();
-        TeleportRequestManager.getInstance().removeRequest(request);
+        context.getSource().sendFeedback(() -> Text.literal("Teleport! Or something..."), false);
         return 1;
     }
 }
