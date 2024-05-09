@@ -27,4 +27,12 @@ public class TeleportRequest extends MINode {
         public PlayerEntity getTarget() {
                 return target;
         }
+
+        public void perform() {
+                this.origin.teleport(
+                        this.target.getX(),
+                        this.target.getY(),
+                        this.target.getZ()
+                );
+        }
 }
