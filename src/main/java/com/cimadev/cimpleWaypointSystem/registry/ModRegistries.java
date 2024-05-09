@@ -2,6 +2,8 @@ package com.cimadev.cimpleWaypointSystem.registry;
 
 import com.cimadev.cimpleWaypointSystem.command.*;
 import com.cimadev.cimpleWaypointSystem.command.tpa.TpaCommand;
+import com.cimadev.cimpleWaypointSystem.command.tpa.TpacceptCommand;
+import com.cimadev.cimpleWaypointSystem.command.tpa.TpdenyCommand;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 
 public class ModRegistries {
@@ -9,7 +11,9 @@ public class ModRegistries {
             WpsCommand::register,
             HomeCommand::register,
             SpawnCommand::register,
-            TpaCommand::register
+            TpaCommand::register,
+            TpacceptCommand::register,
+            TpdenyCommand::register
     };
 
     public static void registerAll() {
