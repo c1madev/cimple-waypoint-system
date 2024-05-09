@@ -12,14 +12,14 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
-public class TpdenyCommand implements CommandRegistrationCallback {
+public class TpdenyCommand {
     private static final String COMMAND_NAME = "tpdeny";
     private static final Text NO_TPA_ERROR =
             Text.literal("There is no").formatted(Formatting.RED)
             .append(Text.literal("/tpa").formatted(Formatting.YELLOW))
             .append(Text.literal(" request open for you").formatted(Formatting.RED));
 
-    @Override
+
     public static void register(
             CommandDispatcher<ServerCommandSource> dispatcher,
             CommandRegistryAccess registryAccess,
