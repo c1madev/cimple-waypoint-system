@@ -21,8 +21,7 @@ public class TeleportRequestManager {
         while (true) {
             TeleportRequest head = requests.peek();
             if (head != null && head.isExpired(currentTick)){
-                requests.poll();
-                this.playerToRequest.remove(head.getTarget());
+                this.removeRequest(head);
                 System.out.println("Teleport request has expired");
             }
             else break;
@@ -38,6 +37,18 @@ public class TeleportRequestManager {
 
     public @Nullable TeleportRequest getRequest(PlayerEntity target) {
         return playerToRequest.get(target);
+    }
+
+    public boolean removeRequest(PlayerEntity target) {
+        @Nullable TeleportRequest request = this.playerToRequest.remove(target);
+        if (request != null) request.dropout();
+        return request != null;
+    }
+    public boolean removeRequest(TeleportRequest request) {
+        boolean wasRemoved = this.playerToRequest.remove(request.getTarget(), request);
+        // Do not dropout if not in queue
+        if (wasRemoved) request.dropout();
+        return wasRemoved;
     }
 
     public long getRequestTTL() {
