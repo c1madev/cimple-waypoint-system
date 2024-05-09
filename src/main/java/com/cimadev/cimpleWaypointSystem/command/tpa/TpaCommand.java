@@ -45,7 +45,6 @@ public class TpaCommand {
                 .append(" has requested to teleport to you. Type ")
                 .append(
                         Text.literal("/tpaccept")
-                                .formatted(Formatting.YELLOW)
                                 .setStyle(
                                         Style.EMPTY
                                         .withClickEvent(new ClickEvent(
@@ -57,11 +56,11 @@ public class TpaCommand {
                                             Text.literal("Click here to accept")
                                         ))
                                 )
+                                .formatted(Formatting.YELLOW)
                 )
                 .append(" to accept the request or ")
                 .append(
                         Text.literal("/tpdeny")
-                                .formatted(Formatting.RED)
                                 .setStyle(
                                         Style.EMPTY
                                         .withClickEvent(new ClickEvent(
@@ -73,13 +72,20 @@ public class TpaCommand {
                                                 Text.literal("Click here to deny")
                                         ))
                                 )
+                                .formatted(Formatting.RED)
                 )
-                .append(" to deny it. The request will expire in")
-                .append(Long.toString(TeleportRequestManager.getInstance().getRequestTTL()/20))
-                .append(" seconds")
+                .append(" to deny it. The request will expire in ")
+                .append(
+                        Text.literal(
+                                Long.toString(TeleportRequestManager.getInstance().getRequestTTL()/20)
+                        )
+                                .append(" seconds")
+                                .formatted(Formatting.AQUA)
+                )
         );
         origin.sendMessage(
-                origin.getName().copy()
+                target.getName().copy()
+                        .formatted(Formatting.YELLOW)
                 .append(" has received your teleport request.")
         );
 
