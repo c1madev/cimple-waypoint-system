@@ -39,10 +39,10 @@ public class TeleportRequestManager {
         return playerToRequest.get(target);
     }
 
-    public boolean removeRequest(PlayerEntity target) {
+    public @Nullable TeleportRequest removeRequest(PlayerEntity target) {
         @Nullable TeleportRequest request = this.playerToRequest.remove(target);
         if (request != null) request.dropout();
-        return request != null;
+        return request;
     }
     public boolean removeRequest(TeleportRequest request) {
         boolean wasRemoved = this.playerToRequest.remove(request.getTarget(), request);
