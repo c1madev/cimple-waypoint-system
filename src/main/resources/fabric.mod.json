@@ -2,14 +2,15 @@
 	"schemaVersion": 1,
 	"id": "cwps",
 	"version": "${version}",
-	"name": "cimple waypoint system",
-	"description": "A simple waypoint system.",
+	"name": "VOTG Cimple Waypoints",
+	"description": "A simple waypoint system. Adapted for the VOTG Server",
 	"authors": [
-		"cimadev"
+		"cimadev",
+		"Fisch37"
 	],
 	"contact": {
 		"homepage": "",
-		"sources": ""
+		"sources": "https://github.com/Fisch37/votg-cimple-waypoints"
 	},
 	"license": "CC0-1.0",
 	"icon": "assets/cimple-waypoint-system/icon.png",
