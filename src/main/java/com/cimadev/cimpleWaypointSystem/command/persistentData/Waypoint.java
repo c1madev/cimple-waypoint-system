@@ -104,7 +104,7 @@ public class Waypoint {
         this.yaw = yaw.intValue();
         this.worldRegKey = world;
         if ( owner == null ) this.access = 0;
-        else this.access = !(access < 0 || access > 2) ? access : 1;
+        else this.access = !(access < 0 || access > 2) ? access : 0;
     }
 
     public Waypoint (NbtCompound nbt, String waypointKey ) {
