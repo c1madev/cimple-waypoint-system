@@ -22,7 +22,6 @@ public class TeleportRequestManager {
             TeleportRequest head = requests.peek();
             if (head != null && head.isExpired(currentTick)){
                 this.removeRequest(head);
-                System.out.println("Teleport request has expired");
             }
             else break;
             currentTick++;
@@ -30,7 +29,7 @@ public class TeleportRequestManager {
     }
 
     public void addRequest(TeleportRequest request) {
-        request.setExpirationDate(currentTick);
+        request.setExpirationDate(currentTick + this.getRequestTTL());
         this.requests.add(request);
         this.playerToRequest.put(request.getTarget(), request);
     }
