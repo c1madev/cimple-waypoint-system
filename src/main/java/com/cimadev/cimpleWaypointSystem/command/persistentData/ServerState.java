@@ -68,7 +68,7 @@ public class ServerState extends PersistentState {
 
     public Iterable<String> getPlayerNames() {
         Stack<String> playerNames = new Stack<>();
-        playersByName.forEach((name, uuid) -> {
+        playersByName.forEach((name, player) -> {
             playerNames.push(name);
         });
         return playerNames;

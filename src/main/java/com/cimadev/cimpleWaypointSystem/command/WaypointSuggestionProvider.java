@@ -1,4 +1,5 @@
 package com.cimadev.cimpleWaypointSystem.command;
+import com.cimadev.cimpleWaypointSystem.command.persistentData.OfflinePlayer;
 import com.cimadev.cimpleWaypointSystem.command.persistentData.Waypoint;
 
 import com.mojang.brigadier.context.CommandContext;
@@ -10,30 +11,35 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.ArrayList;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class WaypointSuggestionProvider implements SuggestionProvider<ServerCommandSource> {
     @Override
     public CompletableFuture<Suggestions> getSuggestions(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) throws CommandSyntaxException {
-        /* TODO: Implement more consistent suggestions.
-            This class currently suggests open waypoints,
-            however these are typically not used by the underlying commands.
-            An example: /wps go open-waypoint will fail as /wps go open-waypoint open would be required.
-
-            Possible avenues to fix this:
-            1. Pass-through system for waypoint lookup.
-                This would mean waypoints names that aren't found will
-                be looked up in the open list, solving that problem.
-            2. Add argument constructor with boolean settings.
-                This would mean consistency but may be a worse solution overall.
-                Still it will cover /wps remove and /wps rename better.
-            3. Add more complicated permissions-based access determination
-                Most involved option but possibly best for user experience.
+        /**
+         * Implements a passthrough-and-alias system for quicker waypoint access.
+         * Your own and open waypoints can simply be acccessed via the name.
+         * Waypoints owned by other users (that are accessible) are prefixed with <owner>/
          */
         ServerPlayerEntity player = context.getSource().getPlayer();
         ArrayList<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player,null, false, false);
         for (Waypoint waypoint : waypoints) {
-            builder.suggest(waypoint.getName());
+            UUID ownerUuid = waypoint.getOwner();
+            if (
+                ownerUuid == null
+                || (
+                    player != null
+                    && player.getUuid().equals(ownerUuid)
+                )
+            ) {
+                builder.suggest(waypoint.getName());
+            } else {
+                OfflinePlayer owner = waypoint.getOwnerPlayer();
+                if (owner != null) {
+                    builder.suggest(owner.getName() + "/" + waypoint.getName());
+                }
+            }
         }
 
         return builder.buildFuture();

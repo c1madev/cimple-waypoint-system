@@ -25,7 +25,7 @@ import java.util.*;
 import java.util.function.Supplier;
 
 import static com.cimadev.cimpleWaypointSystem.Main.*;
-import static com.mojang.brigadier.arguments.StringArgumentType.word;
+import static com.mojang.brigadier.arguments.StringArgumentType.*;
 
 
 public class WpsCommand {
@@ -72,24 +72,15 @@ public class WpsCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess commandRegistryAccess, CommandManager.RegistrationEnvironment registrationEnvironment) {
 
         dispatcher.register(CommandManager.literal(COMMAND_NAME)
-                .then(CommandManager.argument("name", word())
-                        .executes(WpsCommand::wpsGoSelf)
-                        .then(CommandManager.argument("owner", word())
-                                .suggests(new OfflinePlayerSuggestionProvider())
-                                .executes(WpsCommand::wpsGo))
-                        .then(CommandManager.literal("open")
-                                .executes(WpsCommand::wpsGoOpen)))
+                .then(CommandManager.argument("name", greedyString())
+                        .executes(WpsCommand::wpsGo)
+                )
                 .then(CommandManager.literal("help")
                         .executes(WpsCommand::wpsHelp))
                 .then(CommandManager.literal("go")
-                        .then(CommandManager.argument("name", word())
+                        .then(CommandManager.argument("name", greedyString())
                                 .suggests(new WaypointSuggestionProvider())
-                                .executes(WpsCommand::wpsGoSelf)
-                                .then(CommandManager.argument("owner", word())
-                                        .suggests(new OfflinePlayerSuggestionProvider())
-                                        .executes(WpsCommand::wpsGo))
-                                .then(CommandManager.literal("open")
-                                        .executes(WpsCommand::wpsGoOpen))))
+                                .executes(WpsCommand::wpsGo)))
                 .then(CommandManager.literal("here")
                         .then(CommandManager.argument("name", word())
                                 .executes(WpsCommand::wpsHereMine)
@@ -195,46 +186,29 @@ public class WpsCommand {
         return 1;
     }
 
-    private static int wpsGoOpen(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        return wpsGo(context, 0);
-    }
-
-    private static int wpsGoSelf(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        return wpsGo(context, 1);
-    }
-
     private static int wpsGo(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        return wpsGo(context, 2);
-    }
-    private static int wpsGo(CommandContext<ServerCommandSource> context, int ownedBy) throws CommandSyntaxException {
         Supplier<Text> messageText;
         ServerCommandSource commandSource = context.getSource();
         ServerPlayerEntity player = commandSource.getPlayerOrThrow();
         MinecraftServer server = commandSource.getServer();
         String name = StringArgumentType.getString(context, "name");
 
-        UUID estimatedOwnerUuid;
-        switch (ownedBy) {
-            case 0 -> {
-                estimatedOwnerUuid = null;
-            }
-            case 1 -> {
-                estimatedOwnerUuid = player.getUuid();
-            }
-            default -> {
-                OfflinePlayer owner = OfflinePlayerArgumentParser.offlinePlayerFromContext(context, "owner");
-                estimatedOwnerUuid = owner.getUuid();
+        Waypoint waypoint = serverState.getWaypoint(new WaypointKey(player.getUuid(), name));
+        if (waypoint == null) {
+            // Get by <foreignName>/<waypoint> if not found
+            String[] waypointComponents = name.split("/", 2);
+            if (waypointComponents.length == 2) {
+                UUID foreignUuid = serverState.getPlayerByName(waypointComponents[0]).getUuid();
+                waypoint = serverState.getWaypoint(new WaypointKey(foreignUuid, waypointComponents[1]));
             }
         }
 
-        Waypoint waypoint = Main.serverState.getWaypoint(new WaypointKey(estimatedOwnerUuid, name));
-
-        if (waypoint != null && Main.serverState.waypointAccess(waypoint, player)) {
+        if (waypoint != null && serverState.waypointAccess(waypoint, player)) {
             String ownerName;
             if (waypoint.getOwner() != null) {
                 OfflinePlayer owner = waypoint.getOwnerPlayer();
-                if (owner == null) ownerName = "ERR: UNKNOWN PLAYER";
-                else ownerName = owner.getName();
+                if (owner == null) ownerName = "ERR: UNKNOWN PLAYER ";
+                else ownerName = owner.getName() + "'s ";
 
             } else {
                 ownerName = "";
@@ -249,10 +223,11 @@ public class WpsCommand {
             Vec3d teleportPos = teleportPosMaybe.get();
             player.teleport(world, teleportPos.getX(), teleportPos.getY(), teleportPos.getZ(), yaw, 0);
 
-            messageText = () -> Text.literal("Teleported to " + ownerName.toLowerCase())
-                    .append(waypoint.getAccessFormatted())
+            Waypoint finalWaypoint = waypoint; // Need to do this because of very intelligent java compiler
+            messageText = () -> Text.literal("Teleported to " + ownerName)
+                    .append(finalWaypoint.getAccessFormatted())
                     .append(Text.literal(" waypoint "))
-                    .append(waypoint.getNameFormatted())
+                    .append(finalWaypoint.getNameFormatted())
                     .append(Text.literal("."))
                     .formatted(DEFAULT_COLOR);
         } else {
