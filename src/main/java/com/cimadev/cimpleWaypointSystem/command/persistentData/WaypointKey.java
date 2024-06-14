@@ -1,12 +1,15 @@
 package com.cimadev.cimpleWaypointSystem.command.persistentData;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.UUID;
 
 public class WaypointKey {
+    @Nullable
     private final UUID owner;
     private String name;
 
-    public UUID getOwner() {
+    public @Nullable UUID getOwner() {
         return owner;
     }
 
@@ -18,7 +21,7 @@ public class WaypointKey {
         this.name = name;
     }
 
-    public WaypointKey(UUID owner, String name) {
+    public WaypointKey(@Nullable UUID owner, String name) {
         this.owner = owner;
         this.name = name;
     }

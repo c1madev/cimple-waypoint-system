@@ -213,57 +213,50 @@ public class WpsCommand {
         MinecraftServer server = commandSource.getServer();
         String name = StringArgumentType.getString(context, "name");
 
-        String ownerName;
-        UUID ownerUuid;
+        UUID estimatedOwnerUuid;
         switch (ownedBy) {
             case 0 -> {
-                ownerName = "";
-                ownerUuid = null;
+                estimatedOwnerUuid = null;
             }
             case 1 -> {
-                ownerUuid = player.getUuid();
-                ownerName = "Your ";
+                estimatedOwnerUuid = player.getUuid();
             }
             default -> {
                 OfflinePlayer owner = OfflinePlayerArgumentParser.offlinePlayerFromContext(context, "owner");
-                if (owner != null) {
-                    ownerUuid = owner.getUuid();
-                    ownerName = (ownerUuid.equals(player.getUuid())) ? "Your " : owner.getName() + "'s ";
-                } else {
-                    messageText = () -> Text.literal("Cannot find the specified owner.").formatted(DEFAULT_COLOR);
-                    commandSource.sendFeedback(messageText, false);
-                    return 1;
-                }
+                estimatedOwnerUuid = owner.getUuid();
             }
         }
 
-        Waypoint waypoint = Main.serverState.getWaypoint(new WaypointKey(ownerUuid, name));
+        Waypoint waypoint = Main.serverState.getWaypoint(new WaypointKey(estimatedOwnerUuid, name));
 
-        if (waypoint != null ) {
-            if ( Main.serverState.waypointAccess(waypoint, player) ) {
-                BlockPos wpPos = waypoint.getPosition();
-                ServerWorld world = server.getWorld(waypoint.getWorldRegKey());
-                if ( world == null ) return -1;
-                int yaw = waypoint.getYaw();
-                Optional<Vec3d> teleportPosMaybe = ServerPlayerEntity.findRespawnPosition(world, wpPos, 0, true, true);
-                if ( teleportPosMaybe.isEmpty() ) return -1;
-                Vec3d teleportPos = teleportPosMaybe.get();
-                player.teleport(world, teleportPos.getX(), teleportPos.getY(), teleportPos.getZ(), yaw, 0);
+        if (waypoint != null && Main.serverState.waypointAccess(waypoint, player)) {
+            String ownerName;
+            if (waypoint.getOwner() != null) {
+                OfflinePlayer owner = waypoint.getOwnerPlayer();
+                if (owner == null) ownerName = "ERR: UNKNOWN PLAYER";
+                else ownerName = owner.getName();
 
-                messageText = () -> Text.literal("Teleported to " + ownerName.toLowerCase())
-                        .append((ownedBy == 0) ? Text.literal("open").formatted(PUBLIC_COLOR) : waypoint.getAccessFormatted()) // dirty because lazy
-                        .append(Text.literal(" waypoint "))
-                        .append(waypoint.getNameFormatted())
-                        .append(Text.literal("."))
-                        .formatted(DEFAULT_COLOR);
             } else {
-                messageText = () -> Text.literal(ownerName + "waypoint ")
-                        .append(Text.literal( name ).formatted(LINK_INACTIVE_COLOR))
-                        .append(Text.literal(" could not be found."))
-                        .formatted(DEFAULT_COLOR);
+                ownerName = "";
             }
+
+            BlockPos wpPos = waypoint.getPosition();
+            ServerWorld world = server.getWorld(waypoint.getWorldRegKey());
+            if ( world == null ) return -1;
+            int yaw = waypoint.getYaw();
+            Optional<Vec3d> teleportPosMaybe = ServerPlayerEntity.findRespawnPosition(world, wpPos, 0, true, true);
+            if ( teleportPosMaybe.isEmpty() ) return -1;
+            Vec3d teleportPos = teleportPosMaybe.get();
+            player.teleport(world, teleportPos.getX(), teleportPos.getY(), teleportPos.getZ(), yaw, 0);
+
+            messageText = () -> Text.literal("Teleported to " + ownerName.toLowerCase())
+                    .append(waypoint.getAccessFormatted())
+                    .append(Text.literal(" waypoint "))
+                    .append(waypoint.getNameFormatted())
+                    .append(Text.literal("."))
+                    .formatted(DEFAULT_COLOR);
         } else {
-            messageText = () -> Text.literal(ownerName + "waypoint ")
+            messageText = () -> Text.literal("Waypoint ")
                     .append(Text.literal( name ).formatted(LINK_INACTIVE_COLOR))
                     .append(Text.literal(" could not be found."))
                     .formatted(DEFAULT_COLOR);
