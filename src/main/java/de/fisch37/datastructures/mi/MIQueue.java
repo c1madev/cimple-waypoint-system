@@ -32,6 +32,8 @@ public class MIQueue<T extends MINode> implements Iterable<T>{
     }
     public boolean offer(@NotNull T o){
         o.setQueue((MIQueue<MINode>) this);
+        if (this.first == null)
+            this.first = o;
         if (this.last != null)
             this.last.next = o;
         this.last = o;
