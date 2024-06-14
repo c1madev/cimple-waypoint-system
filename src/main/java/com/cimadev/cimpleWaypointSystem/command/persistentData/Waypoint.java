@@ -1,5 +1,6 @@
 package com.cimadev.cimpleWaypointSystem.command.persistentData;
 
+import com.cimadev.cimpleWaypointSystem.Main;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.text.HoverEvent;
@@ -9,6 +10,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -34,8 +36,15 @@ public class Waypoint {
         return yaw;
     }
 
+    @Nullable
     public UUID getOwner() {
         return key.getOwner();
+    }
+
+    @Nullable
+    public OfflinePlayer getOwnerPlayer() {
+        UUID ownerUuid = this.getOwner();
+        return serverState.getPlayerByUuid(ownerUuid);
     }
 
     public WaypointKey getKey() {
@@ -82,12 +91,14 @@ public class Waypoint {
     }
 
     public Text getAccessFormatted() {
-        switch (this.access) {
-            case 0: return Text.literal("public").formatted(PUBLIC_COLOR);
-            case 1: return Text.literal("private").formatted(PRIVATE_COLOR);
-            case 2: return Text.literal("secret").formatted(SECRET_COLOR);
-            default : return Text.literal("[An error has occurred in determining the access. Try setting it manually.");
-        }
+        if (this.getOwner() == null)
+            return Text.literal("open").formatted(PUBLIC_COLOR);
+        return switch (this.access) {
+            case 0 -> Text.literal("public").formatted(PUBLIC_COLOR);
+            case 1 -> Text.literal("private").formatted(PRIVATE_COLOR);
+            case 2 -> Text.literal("secret").formatted(SECRET_COLOR);
+            default -> Text.literal("[An error has occurred in determining the access. Try setting it manually.");
+        };
     }
 
     public Text getNameFormatted() {
