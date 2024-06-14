@@ -271,7 +271,8 @@ public class WpsCommand {
             if (waypoint.getOwner() != null) {
                 OfflinePlayer owner = waypoint.getOwnerPlayer();
                 if (owner == null) ownerName = "ERR: UNKNOWN PLAYER";
-                else ownerName = owner.getName();
+                else if (owner.getUuid().equals(player.getUuid())) ownerName = "your";
+                else ownerName = owner.getName() + "'s";
 
             } else {
                 ownerName = "";
@@ -286,7 +287,9 @@ public class WpsCommand {
             Vec3d teleportPos = teleportPosMaybe.get();
             player.teleport(world, teleportPos.getX(), teleportPos.getY(), teleportPos.getZ(), yaw, 0);
 
-            messageText = () -> Text.literal("Teleported to " + ownerName.toLowerCase())
+            messageText = () -> Text.literal("Teleported to ")
+                    .append(Text.literal(ownerName).formatted(PLAYER_COLOR))
+                    .append(" ")
                     .append(waypoint.getAccessFormatted())
                     .append(Text.literal(" waypoint "))
                     .append(waypoint.getNameFormatted())
