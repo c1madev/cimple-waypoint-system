@@ -12,6 +12,9 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
+import static com.cimadev.cimpleWaypointSystem.Main.DEFAULT_COLOR;
+import static com.cimadev.cimpleWaypointSystem.Main.PLAYER_COLOR;
+
 public class TpdenyCommand {
     private static final String COMMAND_NAME = "tpdeny";
     private static final Text NO_TPA_ERROR =
@@ -41,13 +44,13 @@ public class TpdenyCommand {
         PlayerEntity origin = request.getOrigin();
         player.sendMessage(
                 Text.literal("The teleport request from ")
-                        .append(origin.getName().copy().formatted(Formatting.YELLOW))
+                        .append(origin.getName().copy().formatted(PLAYER_COLOR))
                         .append(" has been denied!")
+                        .formatted(DEFAULT_COLOR)
         );
         origin.sendMessage(
-                player.getName().copy()
-                        .formatted(Formatting.YELLOW)
-                        .append(" has denied your teleport request")
+                player.getName().copy().formatted(PLAYER_COLOR)
+                .append(Text.literal(" has denied your teleport request").formatted(Formatting.RED))
         );
         return 1;
     }

@@ -37,7 +37,6 @@ public class TpacceptCommand {
             return 0;
         }
         request.perform();
-        context.getSource().sendFeedback(() -> Text.literal("Teleport! Or something..."), false);
         return 1;
     }
 }
