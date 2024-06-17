@@ -224,7 +224,8 @@ public class WpsCommand {
             player.teleport(world, teleportPos.getX(), teleportPos.getY(), teleportPos.getZ(), yaw, 0);
 
             Waypoint finalWaypoint = waypoint; // Need to do this because of very intelligent java compiler
-            messageText = () -> Text.literal("Teleported to " + ownerName)
+            messageText = () -> Text.literal("Teleported to ")
+                    .append(Text.literal(ownerName).formatted(PLAYER_COLOR))
                     .append(finalWaypoint.getAccessFormatted())
                     .append(Text.literal(" waypoint "))
                     .append(finalWaypoint.getNameFormatted())
@@ -413,9 +414,9 @@ public class WpsCommand {
                 if ( owner == null ) {
                     ownerTitle = Text.literal("[Error finding name]'s ").formatted(SECONDARY_COLOR);
                 } else if ( owner.getUuid().equals( playerUuid ) ) {
-                ownerTitle = Text.literal("Your ");
+                    ownerTitle = Text.literal("Your ").formatted(PLAYER_COLOR);
                 } else {
-                    ownerTitle = Text.literal(owner.getName() + "'s ");
+                    ownerTitle = Text.literal(owner.getName() + "'s ").formatted(PLAYER_COLOR);
                 }
             }
             messageText = () -> Text.literal("")

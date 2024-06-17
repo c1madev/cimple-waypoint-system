@@ -15,6 +15,8 @@ import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
+import static com.cimadev.cimpleWaypointSystem.Main.*;
+
 public class TpaCommand {
     private static final String COMMAND_NAME = "tpa";
 
@@ -38,7 +40,7 @@ public class TpaCommand {
 
         if (TeleportRequestManager.getInstance().hasRequest(target)) {
             target.sendMessage(
-                    target.getName().copy().formatted(Formatting.GOLD)
+                    target.getName().copy().formatted(PLAYER_COLOR)
                     .append(
                             Text.literal(" already has a teleport request waiting. Try again later")
                             .formatted(Formatting.RED)
@@ -51,14 +53,15 @@ public class TpaCommand {
                 target
         ));
         target.sendMessage(
-                origin.getName().copy()
+                Text.literal("")
+                .append(origin.getName().copy().formatted(PLAYER_COLOR))
                 .append(" has requested to teleport to you. Type ")
                 .append(
                         Text.literal("/tpaccept")
                                 .setStyle(
                                         Style.EMPTY
                                         .withClickEvent(new ClickEvent(
-                                                ClickEvent.Action.RUN_COMMAND,
+                                                ClickEvent.Action.SUGGEST_COMMAND,
                                                 "/tpaccept"
                                         ))
                                         .withHoverEvent(new HoverEvent(
@@ -74,7 +77,7 @@ public class TpaCommand {
                                 .setStyle(
                                         Style.EMPTY
                                         .withClickEvent(new ClickEvent(
-                                                ClickEvent.Action.RUN_COMMAND,
+                                                ClickEvent.Action.SUGGEST_COMMAND,
                                                 "/tpdeny"
                                         ))
                                         .withHoverEvent(new HoverEvent(
@@ -92,11 +95,13 @@ public class TpaCommand {
                                 .append(" seconds")
                                 .formatted(Formatting.AQUA)
                 )
+                .formatted(DEFAULT_COLOR)
         );
         origin.sendMessage(
-                target.getName().copy()
-                        .formatted(Formatting.YELLOW)
+                Text.literal("")
+                .append(target.getName().copy().formatted(PLAYER_COLOR))
                 .append(" has received your teleport request.")
+                .formatted(DEFAULT_COLOR)
         );
 
         return 1;
