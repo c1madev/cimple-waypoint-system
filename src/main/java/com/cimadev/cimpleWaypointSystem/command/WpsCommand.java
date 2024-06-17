@@ -112,8 +112,8 @@ public class WpsCommand {
                         .then(CommandManager.argument("owner", word())
                                 .suggests(new OfflinePlayerSuggestionProvider())
                                 .executes(WpsCommand::wpsListOwnedAccessible)
-                                .requires(source -> source.hasPermissionLevel(3))
                                 .then(CommandManager.literal("all")
+                                        .requires(source -> source.hasPermissionLevel(3))
                                         .executes(WpsCommand::wpsListOwnedAll)))
                         .then(CommandManager.literal("mine")
                                 .executes(WpsCommand::wpsListMine))
@@ -161,8 +161,8 @@ public class WpsCommand {
 
         // administrator wps options
         dispatcher.register(CommandManager.literal(COMMAND_NAME)
-                .requires(source -> source.hasPermissionLevel(4)) // only meant for printing to console
                 .then(CommandManager.literal("listAll")
+                        .requires(source -> source.hasPermissionLevel(4)) // only meant for printing to console
                         .executes(WpsCommand::wpsListAll)));
     }
 
