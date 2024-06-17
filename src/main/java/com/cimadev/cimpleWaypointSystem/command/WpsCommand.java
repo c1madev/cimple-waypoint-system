@@ -6,10 +6,15 @@ import com.cimadev.cimpleWaypointSystem.command.persistentData.PlayerHome;
 import com.cimadev.cimpleWaypointSystem.command.persistentData.Waypoint;
 import com.cimadev.cimpleWaypointSystem.command.persistentData.WaypointKey;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.command.CommandRegistryAccess;
+import net.minecraft.command.argument.BlockPosArgumentType;
+import net.minecraft.command.argument.DimensionArgumentType;
+import net.minecraft.command.argument.UuidArgumentType;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -19,6 +24,9 @@ import net.minecraft.text.*;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3i;
+import net.minecraft.world.World;
+import org.apache.logging.log4j.core.jmx.Server;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -99,6 +107,46 @@ public class WpsCommand {
                                 .then(CommandManager.literal("open")
                                         .requires(source -> source.hasPermissionLevel(3))
                                         .executes(WpsCommand::wpsAddOpen))))
+                .then(CommandManager.literal("set")
+                        .requires(source -> source.hasPermissionLevel(3))
+                        .then(CommandManager.argument("name", word())
+                                .then(CommandManager.argument("owner", word())
+                                        .suggests(new OfflinePlayerSuggestionProvider())
+                                        .then(CommandManager.argument("access", word())
+                                                .suggests(new AccessSuggestionProvider())
+                                                .executes(WpsCommand::wpsSet)
+                                                .then(CommandManager.argument(
+                                                            "pos",
+                                                            BlockPosArgumentType.blockPos()
+                                                        )
+                                                        .executes(WpsCommand::wpsSet)
+                                                        .then(CommandManager.argument("dimension", DimensionArgumentType.dimension())
+                                                                .executes(WpsCommand::wpsSet)
+                                                                .then(CommandManager.argument(
+                                                                        "yaw",
+                                                                        DoubleArgumentType.doubleArg(-90, 90)
+                                                                )
+                                                                .executes(WpsCommand::wpsSet)
+                                                        )
+                                        )))
+                                )
+                                .then(CommandManager.literal("open")
+                                    .executes(WpsCommand::wpsSetOpen)
+                                    .then(CommandManager.argument(
+                                                    "pos",
+                                                    BlockPosArgumentType.blockPos()
+                                            )
+                                            .executes(WpsCommand::wpsSetOpen)
+                                            .then(CommandManager.argument("dimension", DimensionArgumentType.dimension())
+                                                    .executes(WpsCommand::wpsSet)
+                                                    .then(CommandManager.argument(
+                                                                            "yaw",
+                                                                            DoubleArgumentType.doubleArg(-90, 90)
+                                                                    )
+                                                                    .executes(WpsCommand::wpsSetOpen)
+                                                    )
+                                            )))
+                        ))
                 .then(CommandManager.literal("list")
                         .executes(WpsCommand::wpsListAccessible)
                         .then(CommandManager.argument("owner", word())
@@ -337,6 +385,68 @@ public class WpsCommand {
                     .formatted(DEFAULT_COLOR);
         }
         return message;
+    }
+
+    private static int wpsSetOpen(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        return wpsSet(context, true);
+    }
+
+    private static int wpsSet(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        return wpsSet(context, false);
+    }
+    private static int wpsSet(
+            CommandContext<ServerCommandSource> context,
+            boolean isOpen
+    ) throws CommandSyntaxException {
+        int accessLevel = 0;
+        if (!isOpen) {
+            accessLevel = AccessArgumentParser.accessValueFromContext(context, "access");
+        }
+
+        ServerCommandSource source = context.getSource();
+        String name = StringArgumentType.getString(context, "name");
+        BlockPos pos = BlockPos.ofFloored(source.getPosition());
+        double yaw = source.getRotation().x;
+        RegistryKey<World> world = source.getWorld().getRegistryKey();
+
+        UUID owner = null;
+        // I swear this was the best option available
+        if (!isOpen) {
+            try {
+                owner = OfflinePlayerArgumentParser.offlinePlayerFromContext(context, "owner").getUuid();
+            } catch (CommandSyntaxException e) {
+                owner = UuidArgumentType.getUuid(context, "owner");
+            }
+        }
+        try {
+            pos = BlockPosArgumentType.getBlockPos(context, "pos");
+        } catch (IllegalArgumentException e) { }
+        try {
+            yaw = DoubleArgumentType.getDouble(context, "yaw");
+        } catch (IllegalArgumentException e) { }
+        try {
+            world = DimensionArgumentType
+                    .getDimensionArgument(context, "dimension")
+                    .getRegistryKey();
+        } catch (IllegalArgumentException e) { }
+
+        Waypoint waypoint = new Waypoint(name, pos, yaw, world, owner, accessLevel);
+        serverState.setWaypoint(new WaypointKey(owner, name), waypoint);
+
+        source.sendFeedback(
+                () -> Text.literal("Created new waypoint ")
+                        .append(
+                                Text.literal(name)
+                                // TODO: Figure out if we can embed /wps go
+                                .formatted(LINK_INACTIVE_COLOR)
+                        )
+                        .append("!") // Most important append of all time
+                        .formatted(DEFAULT_COLOR)
+                ,
+                true
+        );
+
+        return 1;
     }
 
     private static int wpsListAccessible(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
