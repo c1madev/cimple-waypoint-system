@@ -195,6 +195,9 @@ public class WpsCommand {
 
         Waypoint waypoint = serverState.getWaypoint(new WaypointKey(player.getUuid(), name));
         if (waypoint == null) {
+            waypoint = serverState.getWaypoint(new WaypointKey(null, name));
+        }
+        if (waypoint == null) {
             // Get by <foreignName>/<waypoint> if not found
             String[] waypointComponents = name.split("/", 2);
             if (waypointComponents.length == 2) {
