@@ -38,11 +38,7 @@ public class ServerState extends PersistentState {
     }
 
     public Waypoint getWaypoint(WaypointKey waypointKey) {
-        Waypoint waypoint = worldWideWaypoints.get(waypointKey);
-        if (waypoint == null) {
-            waypoint = worldWideWaypoints.get(new WaypointKey(null, waypointKey.getName()));
-        }
-        return waypoint;
+        return worldWideWaypoints.get(waypointKey);
     }
 
     public HashMap<WaypointKey, Waypoint> copyWaypointMap() {
