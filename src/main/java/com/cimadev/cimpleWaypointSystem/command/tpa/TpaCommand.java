@@ -36,6 +36,16 @@ public class TpaCommand {
         EntitySelector entity = context.getArgument("target", EntitySelector.class);
         ServerPlayerEntity target = entity.getPlayer(context.getSource());
 
+        if (TeleportRequestManager.getInstance().hasRequest(target)) {
+            target.sendMessage(
+                    target.getName().copy().formatted(Formatting.GOLD)
+                    .append(
+                            Text.literal(" already has a teleport request waiting. Try again later")
+                            .formatted(Formatting.RED)
+                    )
+            );
+            return 0;
+        }
         TeleportRequestManager.getInstance().addRequest(new TeleportRequest(
                 origin,
                 target

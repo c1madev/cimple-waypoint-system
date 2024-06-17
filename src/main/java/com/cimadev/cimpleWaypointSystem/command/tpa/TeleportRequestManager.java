@@ -50,6 +50,10 @@ public class TeleportRequestManager {
         return wasRemoved;
     }
 
+    public boolean hasRequest(PlayerEntity target) {
+        return this.playerToRequest.containsKey(target);
+    }
+
     public long getRequestTTL() {
         return 2*60*20;
     }
