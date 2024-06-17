@@ -1,5 +1,6 @@
 package com.cimadev.cimpleWaypointSystem.command.persistentData;
 
+import com.cimadev.cimpleWaypointSystem.command.AccessLevel;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -20,6 +21,7 @@ public class ServerState extends PersistentState {
     public void setPlayerHome(UUID uuid, PlayerHome playerHome) {
         playerHomes.put(uuid, playerHome);
     }
+
     public void removePlayerHome(UUID uuid) {
         playerHomes.remove(uuid);
     }
@@ -86,14 +88,18 @@ public class ServerState extends PersistentState {
 
     public boolean waypointAccess(Waypoint waypoint, UUID playerUuid) {
         UUID ownerUuid = waypoint.getOwner();
-        if ( waypoint.getAccess() == 0 ) return true;       // all public waypoints freely accessible
+        if ( waypoint.getAccess() == AccessLevel.OPEN || waypoint.getAccess() == AccessLevel.PUBLIC ) return true;       // all public waypoints freely accessible
+
+        // only happens if access type of an open waypoint was corrupted in NBT. In this case, ownerUuid == null && AccessLevel.SECRET
+        // waypoint only visible by admins by listing all waypoints
+        if ( ownerUuid == null ) return false;
 
         OfflinePlayer owner = getPlayerByUuid(ownerUuid);
-        if ( waypoint.getAccess() == 1 && owner.likes( getPlayerByUuid( playerUuid ) ) ) {
+        if ( waypoint.getAccess() == AccessLevel.PRIVATE && owner.likes( getPlayerByUuid( playerUuid ) ) ) {
             return true;
         }
 
-        if ( waypoint.getAccess() == 2 && owner.getUuid().equals(playerUuid)) {
+        if ( waypoint.getAccess() == AccessLevel.SECRET && ownerUuid.equals(playerUuid)) {
             return true;
         }
 
