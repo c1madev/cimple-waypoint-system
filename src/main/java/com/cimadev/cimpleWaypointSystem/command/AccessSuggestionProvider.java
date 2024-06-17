@@ -13,9 +13,9 @@ public class AccessSuggestionProvider implements SuggestionProvider<ServerComman
 
     @Override
     public CompletableFuture<Suggestions> getSuggestions(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) throws CommandSyntaxException {
-        String suggestions[] = {"public", "private", "secret"};
-        for (String s : suggestions ) {
-            builder.suggest(s);
+        for (AccessLevel access : AccessLevel.values() ) {
+            if ( access == AccessLevel.OPEN && !context.getSource().hasPermissionLevel(3) ) continue;
+            builder.suggest(access.getName());
         }
         return builder.buildFuture();
     }

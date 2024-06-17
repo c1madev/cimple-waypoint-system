@@ -1,5 +1,6 @@
 package com.cimadev.cimpleWaypointSystem.command.persistentData;
 
+import com.cimadev.cimpleWaypointSystem.command.AccessLevel;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.text.HoverEvent;
@@ -13,12 +14,13 @@ import net.minecraft.util.math.BlockPos;
 import java.util.UUID;
 
 import static com.cimadev.cimpleWaypointSystem.Main.*;
+import static com.cimadev.cimpleWaypointSystem.command.AccessArgumentParser.accessLevelFromString;
 
 public class Waypoint {
     private WaypointKey key;
     private BlockPos position;
     private int yaw;
-    private int access; // 0 = public, 1 = private, 2 = secret
+    private AccessLevel access; // 0 = public, 1 = private, 2 = secret
 
     private RegistryKey worldRegKey;
 
@@ -63,31 +65,22 @@ public class Waypoint {
         this.yaw = yaw;
     }
 
-    public void setAccess( int access ) {
-        if ( key.getOwner() != null && !(access < 0 || access > 2) ) {
+    public void setAccess( AccessLevel access ) {
+        if ( access != AccessLevel.OPEN ) {
             this.access = access;
         }
     }
 
-    public int getAccess() {
+    public AccessLevel getAccess() {
         return access;
     }
+
     public String getAccessString() {
-        switch (this.access) {
-            case 0: return "public";
-            case 1: return "private";
-            case 2: return "secret";
-            default: return "[An error has occurred in determining the access. Try setting it manually.]";
-        }
+        return this.access.getName();
     }
 
     public Text getAccessFormatted() {
-        switch (this.access) {
-            case 0: return Text.literal("public").formatted(PUBLIC_COLOR);
-            case 1: return Text.literal("private").formatted(PRIVATE_COLOR);
-            case 2: return Text.literal("secret").formatted(SECRET_COLOR);
-            default : return Text.literal("[An error has occurred in determining the access. Try setting it manually.");
-        }
+        return this.access.getNameFormatted();
     }
 
     public Text getNameFormatted() {
@@ -98,13 +91,12 @@ public class Waypoint {
         return waypointName;
     }
 
-    public Waypoint(String name, BlockPos position, Double yaw, RegistryKey world, UUID owner, int access) {
+    public Waypoint(String name, BlockPos position, Double yaw, RegistryKey world, UUID owner, AccessLevel access) {
         this.key = new WaypointKey(owner, name);
         this.position = position;
         this.yaw = yaw.intValue();
         this.worldRegKey = world;
-        if ( owner == null ) this.access = 0;
-        else this.access = !(access < 0 || access > 2) ? access : 1;
+        this.access = access;
     }
 
     public Waypoint (NbtCompound nbt, String waypointKey ) {
@@ -112,7 +104,7 @@ public class Waypoint {
         int position[] = nbt.getIntArray("position");
         this.position = new BlockPos( position[0], position[1], position[2] );
         this.yaw = nbt.getInt("yaw");
-        access = nbt.getInt("access");
+        access = AccessLevel.fromString(nbt.getString("access"));
         Identifier regKeyVal = new Identifier(nbt.getString( "worldRegKeyValue" ));
         Identifier regKeyReg = new Identifier(nbt.getString( "worldRegKeyRegistry" ));
         this.worldRegKey = RegistryKey.of( RegistryKey.ofRegistry(regKeyReg), regKeyVal );
@@ -122,7 +114,7 @@ public class Waypoint {
         NbtCompound waypointNbt = new NbtCompound();
         waypointNbt.putIntArray("position", new int[] {position.getX(), position.getY(), position.getZ()});
         waypointNbt.putInt("yaw", yaw);
-        waypointNbt.putInt("access", access);
+        waypointNbt.putString("access", access.getName());
         waypointNbt.putString("worldRegKeyRegistry", worldRegKey.getRegistry().toString() );
         waypointNbt.putString("worldRegKeyValue", worldRegKey.getValue().toString() );
 
