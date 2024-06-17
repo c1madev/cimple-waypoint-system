@@ -18,6 +18,7 @@ public class Main implements ModInitializer {
     public static final Formatting SECRET_COLOR = Formatting.RED;
     public static final Formatting PRIVATE_COLOR = Formatting.YELLOW;
     public static final Formatting PUBLIC_COLOR = Formatting.DARK_GREEN;
+    public static final Formatting PLAYER_COLOR = Formatting.GREEN;
     public static ServerState serverState;
     @Override
     public void onInitialize() {
