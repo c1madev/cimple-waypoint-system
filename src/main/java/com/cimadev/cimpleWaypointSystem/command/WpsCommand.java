@@ -741,7 +741,7 @@ public class WpsCommand {
         if (waypoint != null) {
             if ( Main.serverState.waypointAccess(waypoint, player) ) {
                 PlayerHome home = new PlayerHome(waypoint.getPosition(), (double) waypoint.getYaw(), waypoint.getWorldRegKey(), playerUuid);
-                Main.serverState.setPlayerHome(playerUuid, home);
+                Main.serverState.setPlayerHome( home );
                 messageText = () -> Text.literal("Your ")
                         .append(home.positionHover("home"))
                         .append(" has been moved to ")

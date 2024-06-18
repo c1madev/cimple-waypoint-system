@@ -16,8 +16,8 @@ public class ServerState extends PersistentState {
     private final HashMap<String, OfflinePlayer> playersByName = new HashMap<>();
     private final HashMap<UUID, OfflinePlayer> playersByUuid = new HashMap<>();
 
-    public void setPlayerHome(UUID uuid, PlayerHome playerHome) {
-        playerHomes.put(uuid, playerHome);
+    public void setPlayerHome( PlayerHome playerHome ) {
+        playerHomes.put(playerHome.getOwner(), playerHome);
     }
 
     public void removePlayerHome(UUID uuid) {
@@ -125,7 +125,7 @@ public class ServerState extends PersistentState {
     }
 
     @Override
-    public NbtCompound writeNbt(NbtCompound nbt) { // todo: build a playerList, waypointList and homesList NbtElement to avoid redundancy of key
+    public NbtCompound writeNbt(NbtCompound nbt) { // todo: build a playerList, waypointList and homesList NbtElement to avoid redundancy of key (if possible)
         NbtCompound pList = new NbtCompound();
         playersByUuid.forEach((uuid, offlinePlayer) -> pList.put(uuid.toString(), offlinePlayer.toNbt()));
         nbt.put("playerList", pList);
@@ -135,7 +135,7 @@ public class ServerState extends PersistentState {
         nbt.put("waypoints",waypointList);
 
         NbtCompound playerHomesCompound = new NbtCompound();
-        playerHomes.forEach((UUID, playerHome) -> playerHome.writeNbt(playerHomesCompound));
+        playerHomes.forEach((uuid, playerHome) -> playerHomesCompound.put(uuid.toString(), playerHome.toNbt()));
         nbt.put("playerHomes", playerHomesCompound);
 
         return nbt;
@@ -144,26 +144,20 @@ public class ServerState extends PersistentState {
     public static ServerState createFromNbt(NbtCompound tag) {
         ServerState serverState = new ServerState();
         NbtCompound pList = tag.getCompound("playerList");
-        pList.getKeys().forEach(key -> serverState.loadPlayer( OfflinePlayer.fromNbt( pList.getCompound(key) ) ));
+        pList.getKeys().forEach(key -> serverState.loadPlayer( OfflinePlayer.fromNbt( pList.getCompound(key) ) ) );
 
         NbtCompound waypointList = tag.getCompound("waypoints");
-        waypointList.getKeys().forEach(key -> serverState.setWaypoint( Waypoint.fromNbt( waypointList.getCompound(key) )));
+        waypointList.getKeys().forEach(key -> serverState.setWaypoint( Waypoint.fromNbt( waypointList.getCompound(key) ) ) );
 
         NbtCompound playerHomesCompound = tag.getCompound("playerHomes");
-        playerHomesCompound.getKeys().forEach(key -> {
-            NbtCompound homeCompound = playerHomesCompound.getCompound(key);
-
-            PlayerHome playerHome = new PlayerHome( homeCompound, key );
-
-            serverState.setPlayerHome( playerHome.getOwner(), playerHome );
-        });
+        playerHomesCompound.getKeys().forEach(key -> serverState.setPlayerHome( PlayerHome.fromNbt( playerHomesCompound.getCompound(key) ) ) );
 
         return serverState;
     }
 
-    public static ServerState getServerState(MinecraftServer server) {
+    public static ServerState getServerState(MinecraftServer server) throws NullPointerException {
         PersistentStateManager persistentStateManager = server
-                .getWorld(World.OVERWORLD).getPersistentStateManager();
+                .getWorld(World.OVERWORLD).getPersistentStateManager(); // todo: how to handle NullPointerException here?
 
         return persistentStateManager.getOrCreate(
                 ServerState::createFromNbt,
