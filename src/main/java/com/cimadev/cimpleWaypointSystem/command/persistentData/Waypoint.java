@@ -10,13 +10,15 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.UUID;
 
 import static com.cimadev.cimpleWaypointSystem.Main.*;
-import static com.cimadev.cimpleWaypointSystem.command.AccessArgumentParser.accessLevelFromString;
 
 public class Waypoint {
+    private static final Logger log = LoggerFactory.getLogger(Waypoint.class);
     private WaypointKey key;
     private BlockPos position;
     private int yaw;
@@ -104,7 +106,12 @@ public class Waypoint {
         int position[] = nbt.getIntArray("position");
         this.position = new BlockPos( position[0], position[1], position[2] );
         this.yaw = nbt.getInt("yaw");
-        access = AccessLevel.fromString(nbt.getString("access"));
+        try {
+            this.access = AccessLevel.fromString(nbt.getString("access"));
+        } catch (IllegalArgumentException i) {
+            /*todo: log the problem*/
+            this.access = AccessLevel.SECRET;
+        }
         Identifier regKeyVal = new Identifier(nbt.getString( "worldRegKeyValue" ));
         Identifier regKeyReg = new Identifier(nbt.getString( "worldRegKeyRegistry" ));
         this.worldRegKey = RegistryKey.of( RegistryKey.ofRegistry(regKeyReg), regKeyVal );

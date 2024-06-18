@@ -1,5 +1,10 @@
 package com.cimadev.cimpleWaypointSystem.command;
 
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
@@ -19,12 +24,22 @@ public enum AccessLevel {
         this.nameFormatted = Text.literal(this.name).formatted(color);
     }
 
-    public static AccessLevel fromString(String name) {
+    public static AccessLevel fromString(String name) throws IllegalArgumentException {
         switch (name) {
+            case "secret": return AccessLevel.SECRET;
             case "private": return AccessLevel.PRIVATE;
             case "public": return AccessLevel.PUBLIC;
             case "open": return AccessLevel.OPEN;
-            default: return AccessLevel.SECRET;
+            default: throw new IllegalArgumentException(name + " is not an acceptable access name.");
+        }
+    }
+
+    public static AccessLevel fromContext(CommandContext<ServerCommandSource> context, String id ) throws CommandSyntaxException {
+        String access = StringArgumentType.getString( context , id );
+        try {
+            return fromString( access );
+        } catch ( IllegalArgumentException i ) {
+            throw new SimpleCommandExceptionType(() -> "Invalid access type " + access + ".").create();
         }
     }
 
