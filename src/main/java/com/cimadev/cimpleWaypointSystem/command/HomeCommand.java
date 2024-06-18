@@ -129,7 +129,7 @@ public class HomeCommand {
         double yaw = player.getYaw();
         ServerWorld world = player.getServerWorld();
         PlayerHome playerHome = new PlayerHome(blockPos, yaw, world.getRegistryKey(), player.getUuid());
-        Main.serverState.setPlayerHome(player.getUuid(), playerHome);
+        Main.serverState.setPlayerHome( playerHome );
         messageText = () -> Text.literal("Your ")
                 .append(playerHome.positionHover("home"))
                 .append(" has been set.")
@@ -183,7 +183,7 @@ public class HomeCommand {
         ServerWorld world = DimensionArgumentType.getDimensionArgument(context, "world");
 
         PlayerHome playerHome = new PlayerHome(blockPos, 0.0, world.getRegistryKey(), player.getUuid());
-        Main.serverState.setPlayerHome(player.getUuid(), playerHome);
+        Main.serverState.setPlayerHome( playerHome );
         messageText = () -> Text.literal(player.getName()+ "'s ")
                 .append(playerHome.positionHover("home"))
                 .append(" has been moved.")
