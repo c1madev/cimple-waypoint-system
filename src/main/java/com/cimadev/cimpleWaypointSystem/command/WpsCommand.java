@@ -294,7 +294,7 @@ public class WpsCommand {
         String name = StringArgumentType.getString(context, "name");
         AccessLevel access = AccessLevel.PRIVATE;
         if ( context.getNodes().size() == 4 ) {
-            access = AccessArgumentParser.accessLevelFromContext(context, "access");
+            access = AccessLevel.fromContext(context, "access");
         }
         if (access == AccessLevel.OPEN && !context.getSource().hasPermissionLevel(3)) {
             AccessLevel finalAccess = access;
@@ -583,7 +583,7 @@ public class WpsCommand {
                     .append(Text.literal(" could not be found."))
                     .formatted(DEFAULT_COLOR);
         } else {
-            AccessLevel access = AccessArgumentParser.accessLevelFromContext(context, "access");
+            AccessLevel access = AccessLevel.fromContext(context, "access");
             Text oldAccess = waypoint.getAccessFormatted();
             waypoint.setAccess(access);
             messageText = () -> Text.literal("Your ")
