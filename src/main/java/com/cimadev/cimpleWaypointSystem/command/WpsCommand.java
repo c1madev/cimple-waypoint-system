@@ -281,6 +281,9 @@ public class WpsCommand {
     }
 
     private static int wpsHere(CommandContext<ServerCommandSource> context, boolean moveIfExists) throws CommandSyntaxException {
+        /* todo:
+         * redesign the whole wpsAdd and wpsHere thing to a) be consistent, b) not pingpong c) not change the access on move if not specified (currently changes to private)
+         */
         Supplier<Text> messageText;
 
         ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
@@ -330,11 +333,11 @@ public class WpsCommand {
 
     private static MutableText wpsMove(Waypoint oldWaypoint, Waypoint newWaypoint) {
         BlockPos nwp = newWaypoint.getPosition();
+        AccessLevel access = newWaypoint.getAccess();
         BlockPos owp = oldWaypoint.getPosition();
         oldWaypoint.setPosition(nwp);
         oldWaypoint.setYaw(newWaypoint.getYaw());
-        AccessLevel access = newWaypoint.getAccess();
-
+        oldWaypoint.setAccess(access);
 
         HoverEvent movedTooltip = new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(" Formerly at x: "  + owp.getX() + ", y: " + owp.getY() + ", z: " + owp.getZ()));
         MutableText moved = Text.literal("Moved").formatted(Formatting.UNDERLINE);
@@ -345,7 +348,7 @@ public class WpsCommand {
         MutableText message = Text.literal("")
                 .append(moved);
         if (access == AccessLevel.OPEN) message.append(" the ").append(access.getNameFormatted());
-        else message.append("your").append(oldAccess);
+        else message.append(" your ").append(oldAccess);
         message.append(" waypoint ")
                 .append(newWaypoint.getNameFormatted())
                 .append(".")
