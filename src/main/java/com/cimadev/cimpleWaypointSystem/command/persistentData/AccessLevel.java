@@ -25,13 +25,13 @@ public enum AccessLevel {
     }
 
     public static AccessLevel fromString(String name) throws IllegalArgumentException {
-        switch (name) {
-            case "secret": return AccessLevel.SECRET;
-            case "private": return AccessLevel.PRIVATE;
-            case "public": return AccessLevel.PUBLIC;
-            case "open": return AccessLevel.OPEN;
-            default: throw new IllegalArgumentException(name + " is not an acceptable access name.");
-        }
+        return switch (name) {
+            case "secret" -> AccessLevel.SECRET;
+            case "private" -> AccessLevel.PRIVATE;
+            case "public" -> AccessLevel.PUBLIC;
+            case "open" -> AccessLevel.OPEN;
+            default -> throw new IllegalArgumentException(name + " is not an acceptable access name.");
+        };
     }
 
     public static AccessLevel fromContext(CommandContext<ServerCommandSource> context, String id ) throws CommandSyntaxException {
