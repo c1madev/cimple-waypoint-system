@@ -27,6 +27,7 @@ public class WaypointKey {
         if ( this.owner == null ) return name+"/";
         return name+"/"+owner;
     }
+
     public static WaypointKey fromString( String waypointKey ) {
         String parts[] = waypointKey.split("/", 2);
         if ( parts[1] == "" ) return new WaypointKey(null, parts[0]);

@@ -1,18 +1,31 @@
 package com.cimadev.cimpleWaypointSystem.command.persistentData;
 
+import com.cimadev.cimpleWaypointSystem.Main;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
 import java.util.TreeSet;
 import java.util.UUID;
 
+import static com.cimadev.cimpleWaypointSystem.Main.DEFAULT_COLOR;
+import static com.cimadev.cimpleWaypointSystem.Main.LINK_INACTIVE_COLOR;
+
 public class OfflinePlayer implements Comparable<OfflinePlayer> {
 
-    private UUID uuid;
+    public static final DynamicCommandExceptionType INVALID_PLAYER_NAME = new DynamicCommandExceptionType(
+            /*todo: change to PLAYER_COLOR*/
+            o -> Text.literal("Player ").append( Text.literal( o+"" ).formatted(LINK_INACTIVE_COLOR) )
+                    .append( " not found. Did they change their name?").formatted(DEFAULT_COLOR));
+
+    private final UUID uuid;
     private String name;
-    private TreeSet<OfflinePlayer> friends = new TreeSet<>();
+    private final TreeSet<UUID> friends = new TreeSet<>();
 
     public UUID getUuid() {
         return this.uuid;
@@ -31,11 +44,11 @@ public class OfflinePlayer implements Comparable<OfflinePlayer> {
     }
 
     public boolean addFriend(OfflinePlayer friend) {
-        return friends.add(friend);
+        return friends.add(friend.getUuid());
     }
 
     public boolean removeFriend(OfflinePlayer notFriend) {
-        return friends.remove(notFriend);
+        return friends.remove(notFriend.getUuid());
     }
 
     @Override
@@ -49,58 +62,61 @@ public class OfflinePlayer implements Comparable<OfflinePlayer> {
         return false;
     }
 
-    public OfflinePlayer (ServerPlayerEntity player) {
-        this( player.getUuid(), player.getName().getString() );
-    }
-
-    public OfflinePlayer (UUID uuid, String name) {
+    public OfflinePlayer (@NotNull UUID uuid, @NotNull String name) {
         this.name = name;
         this.uuid = uuid;
     }
 
-    public boolean likes(OfflinePlayer maybeFriend) {
-        if ( maybeFriend.getUuid().equals(uuid) ) return true;
-        return friends.contains(maybeFriend);
-    }
+    OfflinePlayer( NbtCompound nbt ) {
+        this.uuid = nbt.getUuid( "uuid" ); /*todo: check invalid uuid*/
+        this.name = nbt.getString( "name" );
 
-    public boolean likes(ServerPlayerEntity maybeFriend) {
-        if ( maybeFriend.getUuid().equals(uuid) ) return true;
-        return likes( new OfflinePlayer(maybeFriend) ); // probably not good practise?
-    }
-
-    public OfflinePlayer (NbtCompound nbt, String uuid ) {
-        this.name = nbt.getString("name");
-        this.uuid = UUID.fromString(uuid);
-    }
-
-    public void loadFriends (NbtCompound nbt, HashMap<UUID, OfflinePlayer> offlinePlayers) {
         NbtCompound friendList = nbt.getCompound("friendList");
         friendList.getKeys().forEach(key -> {
-            friends.add( offlinePlayers.get( key ) );
-            friends.add( offlinePlayers.get( friendList.getString(key) ) );
+            this.friends.add( UUID.fromString(key) );
+            this.friends.add( UUID.fromString(friendList.getString(key)) );
         });
     }
 
-    public NbtCompound writeNbt( NbtCompound nbt ) {
-        NbtCompound offlinePlayerCompound = new NbtCompound();
-        offlinePlayerCompound.putString("name", name);
+    public boolean likes(UUID maybeFriend) {
+        if ( maybeFriend.equals(uuid) ) return true;
+        return friends.contains(maybeFriend);
+    }
+
+    public NbtCompound toNbt( ) {
+        NbtCompound nbt = new NbtCompound();
+        nbt.putUuid("uuid", uuid);
+        nbt.putString("name", name);
         int friendnum = friends.size();
 
         NbtCompound friendList = new NbtCompound();
-        for ( int i = 0 ; i < (friendnum - 1) / 2 ; i++) {
-            friendList.putString( friends.pollFirst().getUuid().toString() , friends.pollLast().getUuid().toString() );
+        while( friends.size() > 1 ) {
+            friendList.putString( friends.pollFirst().toString() , friends.pollLast().toString() );
         }
-        if (friendnum != 0) {
-            String key = friends.pollFirst().getUuid().toString();
-            String value = friends.pollLast().getUuid().toString();
-            if (value == null) value = key;
-            friendList.putString(key, value);
+        if (friendnum == 1) {
+            String lastUuid = friends.pollFirst().toString();
+            friendList.putString(lastUuid, lastUuid);
         }
 
-        offlinePlayerCompound.put("friendList", friendList);
-
-        nbt.put(uuid.toString(), offlinePlayerCompound);
+        nbt.put("friendList", friendList);
         return nbt;
+    }
+
+    public static OfflinePlayer fromNbt( NbtCompound nbt ) {
+        return new OfflinePlayer( nbt );
+    }
+
+    public static OfflinePlayer fromName(String name) throws NullPointerException {
+        return Main.serverState.getPlayerByName( name );
+    }
+
+    public static OfflinePlayer fromContext(CommandContext<ServerCommandSource> context, String id ) throws CommandSyntaxException {
+        String playerName = StringArgumentType.getString(context, id);
+        try {
+            return fromName(playerName);
+        } catch ( NullPointerException n ) {
+            throw INVALID_PLAYER_NAME.create( playerName );
+        }
     }
 
 }
