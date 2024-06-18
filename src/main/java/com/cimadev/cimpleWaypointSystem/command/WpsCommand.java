@@ -1,10 +1,7 @@
 package com.cimadev.cimpleWaypointSystem.command;
 
 import com.cimadev.cimpleWaypointSystem.Main;
-import com.cimadev.cimpleWaypointSystem.command.persistentData.OfflinePlayer;
-import com.cimadev.cimpleWaypointSystem.command.persistentData.PlayerHome;
-import com.cimadev.cimpleWaypointSystem.command.persistentData.Waypoint;
-import com.cimadev.cimpleWaypointSystem.command.persistentData.WaypointKey;
+import com.cimadev.cimpleWaypointSystem.command.persistentData.*;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -218,7 +215,7 @@ public class WpsCommand {
                 ownerName = "Your ";
             }
             default -> {
-                OfflinePlayer owner = OfflinePlayerArgumentParser.offlinePlayerFromContext(context, "owner");
+                OfflinePlayer owner = OfflinePlayer.fromContext(context, "owner");
                 if (owner != null) {
                     ownerUuid = owner.getUuid();
                     ownerName = (ownerUuid.equals(player.getUuid())) ? "Your " : owner.getName() + "'s ";
@@ -322,7 +319,7 @@ public class WpsCommand {
     }
 
     private static MutableText wpsAdd(Waypoint newWaypoint) {
-        Main.serverState.setWaypoint(newWaypoint.getKey(), newWaypoint);
+        Main.serverState.setWaypoint( newWaypoint );
         return Text.literal("Set ")
                 .append(newWaypoint.getAccessFormatted())
                 .append(" waypoint ")
@@ -376,7 +373,7 @@ public class WpsCommand {
         ServerPlayerEntity player = context.getSource().getPlayer();
         if ( player == null ) return wpsListOwnedAll(context);
         else {
-            OfflinePlayer owner = OfflinePlayerArgumentParser.offlinePlayerFromContext(context, "owner");
+            OfflinePlayer owner = OfflinePlayer.fromContext(context, "owner");
             /*todo: if( owner == null ) error "not a valid player", return 1*/
             ArrayList<Waypoint> waypoints = wpsList(player, owner, false, false);
             printWaypointsToUser(context, waypoints);
@@ -392,7 +389,7 @@ public class WpsCommand {
     private static int wpsListOwnedAll(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
 
         ServerPlayerEntity player = context.getSource().getPlayer();
-        OfflinePlayer owner = OfflinePlayerArgumentParser.offlinePlayerFromContext(context, "owner");
+        OfflinePlayer owner = OfflinePlayer.fromContext(context, "owner");
         /*todo: if( owner == null ) error "not a valid player", return 1*/
         ArrayList<Waypoint> waypoints = wpsList(player, owner, true, false);
         printWaypointsToUser(context, waypoints);
@@ -528,7 +525,7 @@ public class WpsCommand {
 
     private static int wpsRemoveOwned(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         String name = StringArgumentType.getString(context, "name");
-        OfflinePlayer owner = OfflinePlayerArgumentParser.offlinePlayerFromContext(context, "owner");
+        OfflinePlayer owner = OfflinePlayer.fromContext(context, "owner");
         WaypointKey wpKey = new WaypointKey(owner.getUuid(), name);
         Waypoint waypoint = Main.serverState.getWaypoint(wpKey);
         return wpsRemove(context, waypoint, name, false);
@@ -621,7 +618,7 @@ public class WpsCommand {
     private static int wpsRenameOwned(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         String oldName = StringArgumentType.getString(context, "oldName");
         String newName = StringArgumentType.getString(context, "newName");
-        OfflinePlayer owner = OfflinePlayerArgumentParser.offlinePlayerFromContext(context, "owner");
+        OfflinePlayer owner = OfflinePlayer.fromContext(context, "owner");
         WaypointKey wpKey = new WaypointKey(owner.getUuid(), oldName);
         Waypoint waypoint = Main.serverState.getWaypoint(wpKey);
         return wpsRename(context, waypoint, oldName, newName, false);
@@ -651,7 +648,7 @@ public class WpsCommand {
             Main.serverState.removeWaypoint(waypoint.getKey());
             oldName = waypoint.getName();
             waypoint.rename(newName);
-            Main.serverState.setWaypoint(waypoint.getKey(), waypoint);
+            Main.serverState.setWaypoint( waypoint );
             String finalOldName = oldName;
             MutableText message = Text.literal("Your waypoint ");
             if ( ownerUuid != null ) message.append(Text.literal(finalOldName).formatted(LINK_INACTIVE_COLOR));
@@ -672,7 +669,7 @@ public class WpsCommand {
 
         ServerPlayerEntity p = context.getSource().getPlayerOrThrow();
         OfflinePlayer player = Main.serverState.getPlayerByUuid(p.getUuid());
-        OfflinePlayer friend = OfflinePlayerArgumentParser.offlinePlayerFromContext(context, "friend");
+        OfflinePlayer friend = OfflinePlayer.fromContext(context, "friend");
         if ( friend != null ) {
             boolean newFriend = player.addFriend(friend);
             if ( newFriend ) {
@@ -693,7 +690,7 @@ public class WpsCommand {
 
         ServerPlayerEntity p = context.getSource().getPlayerOrThrow();
         OfflinePlayer player = Main.serverState.getPlayerByUuid(p.getUuid());
-        OfflinePlayer friend = OfflinePlayerArgumentParser.offlinePlayerFromContext(context, "friend");
+        OfflinePlayer friend = OfflinePlayer.fromContext(context, "friend");
         if ( friend != null ) {
             boolean newFriend = player.removeFriend(friend);
             if ( newFriend ) {
@@ -720,7 +717,7 @@ public class WpsCommand {
         UUID ownerUuid;
         if (context.getNodes().size() == 4) {
             try {
-                owner = OfflinePlayerArgumentParser.offlinePlayerFromContext(context, "owner");
+                owner = OfflinePlayer.fromContext(context, "owner");
                 ownerName = Text.literal(owner.getName() + "'s ");
                 ownerUuid = owner.getUuid();
             } catch (Exception e) {

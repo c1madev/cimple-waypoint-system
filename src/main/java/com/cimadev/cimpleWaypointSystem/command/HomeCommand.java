@@ -178,7 +178,7 @@ public class HomeCommand {
 
     private static int homeSet(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         Supplier<Text> messageText;
-        OfflinePlayer player = OfflinePlayerArgumentParser.offlinePlayerFromContext(context, "player");
+        OfflinePlayer player = OfflinePlayer.fromContext(context, "player");
         BlockPos blockPos = BlockPosArgumentType.getBlockPos(context, "position");
         ServerWorld world = DimensionArgumentType.getDimensionArgument(context, "world");
 
@@ -212,7 +212,7 @@ public class HomeCommand {
     private static int homeOf(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         Supplier<Text> messageText;
 
-        OfflinePlayer player = OfflinePlayerArgumentParser.offlinePlayerFromContext(context, "owner");
+        OfflinePlayer player = OfflinePlayer.fromContext(context, "owner");
         PlayerHome ph = Main.serverState.getPlayerHome(player.getUuid());
 
         if ( ph != null ) {

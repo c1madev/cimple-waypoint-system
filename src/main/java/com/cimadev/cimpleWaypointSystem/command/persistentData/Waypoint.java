@@ -1,6 +1,5 @@
 package com.cimadev.cimpleWaypointSystem.command.persistentData;
 
-import com.cimadev.cimpleWaypointSystem.command.AccessLevel;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.text.HoverEvent;
@@ -101,8 +100,8 @@ public class Waypoint {
         this.access = access;
     }
 
-    public Waypoint (NbtCompound nbt, String waypointKey ) {
-        this.key = WaypointKey.fromString(waypointKey);
+    private Waypoint( NbtCompound nbt ) {
+        this.key = WaypointKey.fromString(nbt.getString("key"));
         int position[] = nbt.getIntArray("position");
         this.position = new BlockPos( position[0], position[1], position[2] );
         this.yaw = nbt.getInt("yaw");
@@ -117,15 +116,18 @@ public class Waypoint {
         this.worldRegKey = RegistryKey.of( RegistryKey.ofRegistry(regKeyReg), regKeyVal );
     }
 
-    public NbtCompound writeNbt( NbtCompound nbt ) {
-        NbtCompound waypointNbt = new NbtCompound();
-        waypointNbt.putIntArray("position", new int[] {position.getX(), position.getY(), position.getZ()});
-        waypointNbt.putInt("yaw", yaw);
-        waypointNbt.putString("access", access.getName());
-        waypointNbt.putString("worldRegKeyRegistry", worldRegKey.getRegistry().toString() );
-        waypointNbt.putString("worldRegKeyValue", worldRegKey.getValue().toString() );
+    public static Waypoint fromNbt( NbtCompound nbt ) {
+        return new Waypoint( nbt );
+    }
 
-        nbt.put(key.toString(), waypointNbt);
+    public NbtCompound writeNbt( ) {
+        NbtCompound nbt = new NbtCompound();
+        nbt.putString("key", key.toString());
+        nbt.putIntArray("position", new int[] {position.getX(), position.getY(), position.getZ()});
+        nbt.putInt("yaw", yaw);
+        nbt.putString("access", access.getName());
+        nbt.putString("worldRegKeyRegistry", worldRegKey.getRegistry().toString() );
+        nbt.putString("worldRegKeyValue", worldRegKey.getValue().toString() );
 
         return nbt;
     }

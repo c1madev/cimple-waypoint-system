@@ -1,5 +1,6 @@
 package com.cimadev.cimpleWaypointSystem.command;
 
+import com.cimadev.cimpleWaypointSystem.command.persistentData.AccessLevel;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;

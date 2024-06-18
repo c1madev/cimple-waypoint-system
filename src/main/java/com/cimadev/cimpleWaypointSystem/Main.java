@@ -24,10 +24,10 @@ public class Main implements ModInitializer {
     public void onInitialize() {
         ModRegistries.registerAll();
         ServerPlayConnectionEvents.INIT.register((handler, server) -> {
-            // You can see we use the function getServer() that's on the player.
-            serverState = ServerState.getServerState(handler.player.getWorld().getServer());
             System.out.println("Initializing server state!");
-            //serverState = ServerState.getServerState(server);
+            serverState = ServerState.getServerState(server);
+            // If the above line breaks at some point, this is probably the correct one:
+            // serverState = ServerState.getServerState(handler.player.getWorld().getServer());
             server.getWorldRegistryKeys();
         });
 

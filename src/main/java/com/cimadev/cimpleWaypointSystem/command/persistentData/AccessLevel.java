@@ -1,4 +1,4 @@
-package com.cimadev.cimpleWaypointSystem.command;
+package com.cimadev.cimpleWaypointSystem.command.persistentData;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
