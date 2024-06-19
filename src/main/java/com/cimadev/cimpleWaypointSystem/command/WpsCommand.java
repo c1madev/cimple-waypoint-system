@@ -112,7 +112,7 @@ public class WpsCommand {
                                 .then(CommandManager.argument("owner", word())
                                         .suggests(new OfflinePlayerSuggestionProvider())
                                         .then(CommandManager.argument("access", word())
-                                                .suggests(new AccessSuggestionProvider())
+                                                .suggests(new AccessSuggestionProvider(false))
                                                 .executes(WpsCommand::wpsSet)
                                                 .then(CommandManager.argument(
                                                                 "pos",
@@ -129,7 +129,6 @@ public class WpsCommand {
                                                                 )
                                                         )))
                                 )
-                                // TODO: Reconcile this with new Access enum
                                 .then(CommandManager.literal("open")
                                         .executes(WpsCommand::wpsSetOpen)
                                         .then(CommandManager.argument(
@@ -140,10 +139,10 @@ public class WpsCommand {
                                                 .then(CommandManager.argument("dimension", DimensionArgumentType.dimension())
                                                         .executes(WpsCommand::wpsSet)
                                                         .then(CommandManager.argument(
-                                                                                "yaw",
-                                                                                DoubleArgumentType.doubleArg(-90, 90)
-                                                                        )
-                                                                        .executes(WpsCommand::wpsSetOpen)
+                                                                        "yaw",
+                                                                        DoubleArgumentType.doubleArg(-90, 90)
+                                                                )
+                                                                .executes(WpsCommand::wpsSetOpen)
                                                         )
                                                 )))
                         ))
