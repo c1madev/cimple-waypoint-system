@@ -1,5 +1,6 @@
 package com.cimadev.cimpleWaypointSystem.command.persistentData;
 
+import com.cimadev.cimpleWaypointSystem.Main;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -155,13 +156,21 @@ public class ServerState extends PersistentState {
         return serverState;
     }
 
-    public static ServerState getServerState(MinecraftServer server) throws NullPointerException {
+
+    private final static Type<ServerState> type = new Type<>(
+            ServerState::new,
+            ServerState::createFromNbt,
+            null
+    );
+
+    public static ServerState getServerState(MinecraftServer server) {
+        // FIXME: This breaks mod compatibility when a mod removes the overworld. Yes that can happen.
         PersistentStateManager persistentStateManager = server
-                .getWorld(World.OVERWORLD).getPersistentStateManager(); // todo: how to handle NullPointerException here?
+                .getWorld(World.OVERWORLD).getPersistentStateManager();
 
         return persistentStateManager.getOrCreate(
-                ServerState::createFromNbt,
-                ServerState::new,
-                "cimple-waypoint-system");
+                type,
+                Main.MOD_ID
+        );
     }
 }

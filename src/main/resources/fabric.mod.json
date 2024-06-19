@@ -2,14 +2,15 @@
 	"schemaVersion": 1,
 	"id": "cwps",
 	"version": "${version}",
-	"name": "cimple waypoint system",
-	"description": "A simple waypoint system.",
+	"name": "VOTG Cimple Waypoints",
+	"description": "A simple waypoint system. Adapted for the VOTG Server",
 	"authors": [
-		"cimadev"
+		"cimadev",
+		"Fisch37"
 	],
 	"contact": {
 		"homepage": "",
-		"sources": ""
+		"sources": "https://github.com/Fisch37/votg-cimple-waypoints"
 	},
 	"license": "CC0-1.0",
 	"icon": "assets/cimple-waypoint-system/icon.png",
@@ -17,20 +18,15 @@
 	"entrypoints": {
 		"main": [
 			"com.cimadev.cimpleWaypointSystem.Main"
-		],
-		"client": [
-			"com.cimadev.cimpleWaypointSystemClient.client"
 		]
 	},
 	"mixins": [
+		"cimple-waypoint-system.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.14.21",
-		"minecraft": "~1.20.1",
+		"minecraft": "~1.20.4",
 		"java": ">=17",
 		"fabric-api": "*"
-	},
-    "suggests": {
-		"another-mod": "*"
 	}
 }

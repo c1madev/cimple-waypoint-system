@@ -9,8 +9,10 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -18,12 +20,12 @@ import static com.cimadev.cimpleWaypointSystem.Main.*;
 
 public class Waypoint {
     private static final Logger log = LoggerFactory.getLogger(Waypoint.class);
-    private WaypointKey key;
+    private final WaypointKey key;
     private BlockPos position;
     private int yaw;
-    private AccessLevel access; // 0 = public, 1 = private, 2 = secret
+    private AccessLevel access;
 
-    private RegistryKey worldRegKey;
+    private final RegistryKey<World> worldRegKey;
 
     public String getName() {
         return key.getName();
@@ -37,15 +39,22 @@ public class Waypoint {
         return yaw;
     }
 
+    @Nullable
     public UUID getOwner() {
         return key.getOwner();
+    }
+
+    @Nullable
+    public OfflinePlayer getOwnerPlayer() {
+        UUID ownerUuid = this.getOwner();
+        return serverState.getPlayerByUuid(ownerUuid);
     }
 
     public WaypointKey getKey() {
         return key;
     }
 
-    public RegistryKey getWorldRegKey() {
+    public RegistryKey<World> getWorldRegKey() {
         return worldRegKey;
     }
 
@@ -76,10 +85,6 @@ public class Waypoint {
         return access;
     }
 
-    public String getAccessString() {
-        return this.access.getName();
-    }
-
     public Text getAccessFormatted() {
         return this.access.getNameFormatted();
     }
@@ -92,7 +97,7 @@ public class Waypoint {
         return waypointName;
     }
 
-    public Waypoint(String name, BlockPos position, Double yaw, RegistryKey world, UUID owner, AccessLevel access) {
+    public Waypoint(String name, BlockPos position, Double yaw, RegistryKey<World> world, UUID owner, AccessLevel access) {
         this.key = new WaypointKey(owner, name);
         this.position = position;
         this.yaw = yaw.intValue();
@@ -102,11 +107,11 @@ public class Waypoint {
 
     private Waypoint( NbtCompound nbt ) {
         this.key = WaypointKey.fromString(nbt.getString("key"));
-        int position[] = nbt.getIntArray("position");
+        int[] position = nbt.getIntArray("position");
         this.position = new BlockPos( position[0], position[1], position[2] );
         this.yaw = nbt.getInt("yaw");
         try {
-            this.access = AccessLevel.fromString(nbt.getString("access"));
+            this.access = AccessLevel.fromString(nbt.getString("access"), true);
         } catch (IllegalArgumentException i) {
             /*todo: log the problem*/
             this.access = AccessLevel.SECRET;

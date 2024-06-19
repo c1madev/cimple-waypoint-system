@@ -19,6 +19,7 @@ public class Main implements ModInitializer {
     public static final Formatting PRIVATE_COLOR = Formatting.YELLOW;
     public static final Formatting PUBLIC_COLOR = Formatting.DARK_GREEN;
     public static final Formatting OPEN_COLOR = PUBLIC_COLOR;
+    public static final Formatting PLAYER_COLOR = Formatting.GREEN;
     public static ServerState serverState;
     @Override
     public void onInitialize() {
@@ -31,9 +32,7 @@ public class Main implements ModInitializer {
             server.getWorldRegistryKeys();
         });
 
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            serverState.setPlayer(handler.player);
-        });
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> serverState.setPlayer(handler.player));
 
     }
 }
