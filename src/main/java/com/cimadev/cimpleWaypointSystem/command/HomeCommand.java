@@ -129,7 +129,7 @@ public class HomeCommand {
         double yaw = player.getYaw();
         ServerWorld world = player.getServerWorld();
         PlayerHome playerHome = new PlayerHome(blockPos, yaw, world.getRegistryKey(), player.getUuid());
-        Main.serverState.setPlayerHome(player.getUuid(), playerHome);
+        Main.serverState.setPlayerHome( playerHome );
         messageText = () -> Text.literal("Your ")
                 .append(playerHome.positionHover("home"))
                 .append(" has been set.")
@@ -178,12 +178,12 @@ public class HomeCommand {
 
     private static int homeSet(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         Supplier<Text> messageText;
-        OfflinePlayer player = OfflinePlayerArgumentParser.offlinePlayerFromContext(context, "player");
+        OfflinePlayer player = OfflinePlayer.fromContext(context, "player");
         BlockPos blockPos = BlockPosArgumentType.getBlockPos(context, "position");
         ServerWorld world = DimensionArgumentType.getDimensionArgument(context, "world");
 
         PlayerHome playerHome = new PlayerHome(blockPos, 0.0, world.getRegistryKey(), player.getUuid());
-        Main.serverState.setPlayerHome(player.getUuid(), playerHome);
+        Main.serverState.setPlayerHome( playerHome );
         messageText = () -> Text.literal(player.getName()+ "'s ")
                 .append(playerHome.positionHover("home"))
                 .append(" has been moved.")
@@ -212,7 +212,7 @@ public class HomeCommand {
     private static int homeOf(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         Supplier<Text> messageText;
 
-        OfflinePlayer player = OfflinePlayerArgumentParser.offlinePlayerFromContext(context, "owner");
+        OfflinePlayer player = OfflinePlayer.fromContext(context, "owner");
         PlayerHome ph = Main.serverState.getPlayerHome(player.getUuid());
 
         if ( ph != null ) {

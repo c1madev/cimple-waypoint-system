@@ -1,4 +1,4 @@
-package com.cimadev.cimpleWaypointSystem.command;
+package com.cimadev.cimpleWaypointSystem.command.utility;
 
 import net.minecraft.util.math.BlockPos;
 

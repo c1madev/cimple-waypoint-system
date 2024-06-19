@@ -1,7 +1,6 @@
 package com.cimadev.cimpleWaypointSystem.command.persistentData;
 
 import com.cimadev.cimpleWaypointSystem.Main;
-import com.mojang.datafixers.types.Type;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -12,15 +11,16 @@ import net.minecraft.world.World;
 import java.util.*;
 
 public class ServerState extends PersistentState {
-    private HashMap<WaypointKey, Waypoint> worldWideWaypoints = new HashMap<>();
-    private HashMap<UUID, PlayerHome> playerHomes = new HashMap<>();
-    private HashMap<String, OfflinePlayer> playersByName = new HashMap<>();
-    private HashMap<UUID, OfflinePlayer> playersByUuid = new HashMap<>();
-    private int waypointCount;
 
-    public void setPlayerHome(UUID uuid, PlayerHome playerHome) {
-        playerHomes.put(uuid, playerHome);
+    private final HashMap<WaypointKey, Waypoint> worldWideWaypoints = new HashMap<>();
+    private final HashMap<UUID, PlayerHome> playerHomes = new HashMap<>();
+    private final HashMap<String, OfflinePlayer> playersByName = new HashMap<>();
+    private final HashMap<UUID, OfflinePlayer> playersByUuid = new HashMap<>();
+
+    public void setPlayerHome( PlayerHome playerHome ) {
+        playerHomes.put(playerHome.getOwner(), playerHome);
     }
+
     public void removePlayerHome(UUID uuid) {
         playerHomes.remove(uuid);
     }
@@ -29,8 +29,8 @@ public class ServerState extends PersistentState {
         return playerHomes.get(uuid);
     }
 
-    public void setWaypoint(WaypointKey waypointKey, Waypoint waypoint) {
-        worldWideWaypoints.put(waypointKey, waypoint);
+    public void setWaypoint(Waypoint waypoint) {
+        worldWideWaypoints.put(waypoint.getKey(), waypoint);
     }
 
     public void removeWaypoint(WaypointKey waypointKey) {
@@ -46,7 +46,6 @@ public class ServerState extends PersistentState {
     }
 
     public OfflinePlayer getPlayerByName(String name) {
-        OfflinePlayer p = playersByName.get(name);
         return playersByName.get(name);
     }
 
@@ -54,19 +53,9 @@ public class ServerState extends PersistentState {
         return playersByUuid.get(uuid);
     }
 
-    public HashMap<UUID, OfflinePlayer> copyPlayersByUuidMap() {
-        return new HashMap<>(playersByUuid);
-    }
-
-    public HashMap<UUID, PlayerHome> copyPlayerHomesMap() {
-        return new HashMap<>(playerHomes);
-    }
-
     public Iterable<String> getPlayerNames() {
         Stack<String> playerNames = new Stack<>();
-        playersByName.forEach((name, player) -> {
-            playerNames.push(name);
-        });
+        playersByName.forEach((name, uuid) -> playerNames.push(name));
         return playerNames;
     }
 
@@ -87,18 +76,18 @@ public class ServerState extends PersistentState {
 
     public boolean waypointAccess(Waypoint waypoint, UUID playerUuid) {
         UUID ownerUuid = waypoint.getOwner();
-        if ( waypoint.getAccess() == 0 ) return true;       // all public waypoints freely accessible
+        if ( waypoint.getAccess() == AccessLevel.OPEN || waypoint.getAccess() == AccessLevel.PUBLIC ) return true;       // all public waypoints freely accessible
+
+        // only happens if access type of an open waypoint was corrupted in NBT. In this case, ownerUuid == null && AccessLevel.SECRET
+        // waypoint only visible by admins by listing all waypoints
+        if ( ownerUuid == null ) return false;
 
         OfflinePlayer owner = getPlayerByUuid(ownerUuid);
-        if ( waypoint.getAccess() == 1 && owner.likes( getPlayerByUuid( playerUuid ) ) ) {
+        if ( waypoint.getAccess() == AccessLevel.PRIVATE && owner.likes( playerUuid ) ) {
             return true;
         }
 
-        if ( waypoint.getAccess() == 2 && owner.getUuid().equals(playerUuid)) {
-            return true;
-        }
-
-        return false;
+        return waypoint.getAccess() == AccessLevel.SECRET && ownerUuid.equals(playerUuid);
     }
 
     private void setPlayer(String playerName, UUID playerUuid) {
@@ -136,23 +125,18 @@ public class ServerState extends PersistentState {
         playersByName.put(player.getName(), player);
     }
 
-    public void setWaypointCount(int waypointCount) {
-        this.waypointCount = waypointCount;
-    }
-
     @Override
-    public NbtCompound writeNbt(NbtCompound nbt) {
+    public NbtCompound writeNbt(NbtCompound nbt) { // todo: build a playerList, waypointList and homesList NbtElement to avoid redundancy of key (if possible)
         NbtCompound pList = new NbtCompound();
-        playersByUuid.forEach((uuid, offlinePlayer) -> offlinePlayer.writeNbt(pList));
+        playersByUuid.forEach((uuid, offlinePlayer) -> pList.put(uuid.toString(), offlinePlayer.toNbt()));
         nbt.put("playerList", pList);
 
         NbtCompound waypointList = new NbtCompound();
-        worldWideWaypoints.forEach((waypointKey, waypoint) -> waypoint.writeNbt(waypointList));
-        nbt.putInt("waypointCount", worldWideWaypoints.size());
+        worldWideWaypoints.forEach((waypointKey, waypoint) -> waypointList.put(waypointKey.toString(), waypoint.writeNbt()));
         nbt.put("waypoints",waypointList);
 
         NbtCompound playerHomesCompound = new NbtCompound();
-        playerHomes.forEach((UUID, playerHome) -> playerHome.writeNbt(playerHomesCompound));
+        playerHomes.forEach((uuid, playerHome) -> playerHomesCompound.put(uuid.toString(), playerHome.toNbt()));
         nbt.put("playerHomes", playerHomesCompound);
 
         return nbt;
@@ -161,36 +145,17 @@ public class ServerState extends PersistentState {
     public static ServerState createFromNbt(NbtCompound tag) {
         ServerState serverState = new ServerState();
         NbtCompound pList = tag.getCompound("playerList");
-        pList.getKeys().forEach(key -> {
-            serverState.loadPlayer( new OfflinePlayer(pList.getCompound(key), key) );
-        });
-        HashMap<UUID, OfflinePlayer> playersByUuidCopy = serverState.copyPlayersByUuidMap();
-        pList.getKeys().forEach(key -> {
-            OfflinePlayer player = serverState.getPlayerByUuid(UUID.fromString(key));
-            player.loadFriends(pList.getCompound(key), playersByUuidCopy);
-        });
+        pList.getKeys().forEach(key -> serverState.loadPlayer( OfflinePlayer.fromNbt( pList.getCompound(key) ) ) );
 
         NbtCompound waypointList = tag.getCompound("waypoints");
-        serverState.setWaypointCount(tag.getInt("waypointCount"));
-        waypointList.getKeys().forEach(key -> {
-            NbtCompound waypointCompound = waypointList.getCompound(key);
-
-            Waypoint waypoint = new Waypoint( waypointCompound, key );
-
-            serverState.setWaypoint( WaypointKey.fromString(key) , waypoint );
-        });
+        waypointList.getKeys().forEach(key -> serverState.setWaypoint( Waypoint.fromNbt( waypointList.getCompound(key) ) ) );
 
         NbtCompound playerHomesCompound = tag.getCompound("playerHomes");
-        playerHomesCompound.getKeys().forEach(key -> {
-            NbtCompound homeCompound = playerHomesCompound.getCompound(key);
-
-            PlayerHome playerHome = new PlayerHome( homeCompound, key );
-
-            serverState.setPlayerHome( playerHome.getOwner(), playerHome );
-        });
+        playerHomesCompound.getKeys().forEach(key -> serverState.setPlayerHome( PlayerHome.fromNbt( playerHomesCompound.getCompound(key) ) ) );
 
         return serverState;
     }
+
 
     private final static Type<ServerState> type = new Type<>(
             ServerState::new,

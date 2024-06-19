@@ -1,5 +1,6 @@
 package com.cimadev.cimpleWaypointSystem.command;
 
+import com.cimadev.cimpleWaypointSystem.command.persistentData.AccessLevel;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
@@ -13,9 +14,9 @@ public class AccessSuggestionProvider implements SuggestionProvider<ServerComman
 
     @Override
     public CompletableFuture<Suggestions> getSuggestions(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) throws CommandSyntaxException {
-        String suggestions[] = {"public", "private", "secret"};
-        for (String s : suggestions ) {
-            builder.suggest(s);
+        for (AccessLevel access : AccessLevel.values() ) {
+            if ( access == AccessLevel.OPEN && !context.getSource().hasPermissionLevel(3) ) continue;
+            builder.suggest(access.getName());
         }
         return builder.buildFuture();
     }

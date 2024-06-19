@@ -18,16 +18,17 @@ public class Main implements ModInitializer {
     public static final Formatting SECRET_COLOR = Formatting.RED;
     public static final Formatting PRIVATE_COLOR = Formatting.YELLOW;
     public static final Formatting PUBLIC_COLOR = Formatting.DARK_GREEN;
+    public static final Formatting OPEN_COLOR = PUBLIC_COLOR;
     public static final Formatting PLAYER_COLOR = Formatting.GREEN;
     public static ServerState serverState;
     @Override
     public void onInitialize() {
         ModRegistries.registerAll();
         ServerPlayConnectionEvents.INIT.register((handler, server) -> {
-            // You can see we use the function getServer() that's on the player.
-            serverState = ServerState.getServerState(handler.player.getWorld().getServer());
             System.out.println("Initializing server state!");
-            //serverState = ServerState.getServerState(server);
+            serverState = ServerState.getServerState(server);
+            // If the above line breaks at some point, this is probably the correct one:
+            // serverState = ServerState.getServerState(handler.player.getWorld().getServer());
             server.getWorldRegistryKeys();
         });
 

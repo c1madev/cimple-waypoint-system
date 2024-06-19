@@ -53,26 +53,29 @@ public class PlayerHome {
         this.owner = owner;
     }
 
-    public PlayerHome ( NbtCompound nbt, String ownerUUID ) {
+    private PlayerHome ( NbtCompound nbt ) {
         int position[] = nbt.getIntArray("position");
         this.position = new BlockPos( position[0], position[1], position[2] );
         this.yaw = nbt.getInt("yaw");
         Identifier regKeyVal = new Identifier(nbt.getString( "worldRegKeyValue" ));
         Identifier regKeyReg = new Identifier(nbt.getString( "worldRegKeyRegistry" ));
         this.worldRegKey = RegistryKey.of( RegistryKey.ofRegistry(regKeyReg), regKeyVal );
-        this.owner = UUID.fromString(ownerUUID);
+        this.owner = nbt.getUuid("owner");
     }
 
-    public NbtCompound writeNbt( NbtCompound nbt ) {
+    public static PlayerHome fromNbt(NbtCompound nbt) {
+        return new PlayerHome( nbt );
+    }
+
+    public NbtCompound toNbt( ) {
         NbtCompound playerStateNbt = new NbtCompound();
 
+        playerStateNbt.putUuid("owner", owner);
         playerStateNbt.putIntArray("position", new int[] {position.getX(), position.getY(), position.getZ()});
         playerStateNbt.putInt("yaw", yaw);
         playerStateNbt.putString("worldRegKeyRegistry", worldRegKey.getRegistry().toString() );
         playerStateNbt.putString("worldRegKeyValue", worldRegKey.getValue().toString() );
 
-        nbt.put(String.valueOf(owner), playerStateNbt);
-
-        return nbt;
+        return playerStateNbt;
     }
 }
