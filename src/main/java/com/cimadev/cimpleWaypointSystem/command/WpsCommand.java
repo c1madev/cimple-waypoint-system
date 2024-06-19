@@ -73,6 +73,9 @@ public class WpsCommand {
             ""
     };
 
+    private static AccessSuggestionProvider accessSuggestionsAdminsOpen = new AccessSuggestionProvider(source -> source.hasPermissionLevel(3), AccessLevel.OPEN);
+    private static AccessSuggestionProvider accessSuggestionsNoOpen = new AccessSuggestionProvider(AccessLevel.OPEN);
+
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess commandRegistryAccess, CommandManager.RegistrationEnvironment registrationEnvironment) {
 
         dispatcher.register(CommandManager.literal(COMMAND_NAME)
@@ -90,6 +93,7 @@ public class WpsCommand {
                                 .suggests(new WaypointSuggestionProvider(true))
                                 .executes(WpsCommand::wpsGoSelf)
                                 .then(CommandManager.argument("owner", word())
+                                        .suggests(new OfflinePlayerSuggestionProvider())
                                         .executes(WpsCommand::wpsGo))
                                 .then(CommandManager.literal("open")
                                         .executes(WpsCommand::wpsGoOpen))))
@@ -97,13 +101,13 @@ public class WpsCommand {
                         .then(CommandManager.argument("name", word())
                                 .executes(WpsCommand::wpsHereMine)
                                 .then(CommandManager.argument("access", word())
-                                        .suggests(new AccessSuggestionProvider())
+                                        .suggests(accessSuggestionsAdminsOpen)
                                         .executes(WpsCommand::wpsHereMine))))
                 .then(CommandManager.literal("add")
                         .then(CommandManager.argument("name", word())
                                 .executes(WpsCommand::wpsAddMine)
                                 .then(CommandManager.argument("access", word())
-                                        .suggests(new AccessSuggestionProvider())
+                                        .suggests(accessSuggestionsAdminsOpen)
                                         .executes(WpsCommand::wpsAddMine))))
                 .then(CommandManager.literal("set")
                         .requires(source -> source.hasPermissionLevel(3))
@@ -111,7 +115,7 @@ public class WpsCommand {
                                 .then(CommandManager.argument("owner", word())
                                         .suggests(new OfflinePlayerSuggestionProvider())
                                         .then(CommandManager.argument("access", word())
-                                                .suggests(new AccessSuggestionProvider(false))
+                                                .suggests(accessSuggestionsNoOpen)
                                                 .executes(WpsCommand::wpsSet)
                                                 .then(CommandManager.argument(
                                                                 "pos",
@@ -178,7 +182,7 @@ public class WpsCommand {
                 .then(CommandManager.literal("access")
                         .then(CommandManager.argument("name", word())
                                 .then(CommandManager.argument("access", word())
-                                        .suggests(new AccessSuggestionProvider())
+                                        .suggests(accessSuggestionsNoOpen)
                                         .executes(WpsCommand::wpsSetAccess))))
                 .then(CommandManager.literal("friend")
                         .then(CommandManager.literal("add")
@@ -252,30 +256,29 @@ public class WpsCommand {
         MinecraftServer server = commandSource.getServer();
         String name = StringArgumentType.getString(context, "name");
 
-        UUID estimatedOwnerUuid;
+        UUID ownerUuid;
         switch (ownedBy) {
-            case 0 -> estimatedOwnerUuid = null;
-            case 1 -> estimatedOwnerUuid = player.getUuid();
+            case 0 -> ownerUuid = null;
+            case 1 -> ownerUuid = player.getUuid();
             default -> {
                 OfflinePlayer owner = OfflinePlayer.fromContext(context, "owner");
-                estimatedOwnerUuid = owner.getUuid();
+                ownerUuid = owner.getUuid();
             }
         }
 
-        Waypoint waypoint = Main.serverState.getWaypoint(new WaypointKey(estimatedOwnerUuid, name));
+        Waypoint waypoint = Main.serverState.getWaypoint(new WaypointKey(ownerUuid, name));
+        String ownerName;
+        if (waypoint.getOwner() != null) {
+            OfflinePlayer owner = waypoint.getOwnerPlayer();
+            if (owner == null) ownerName = "ERR: UNKNOWN PLAYER ";
+            else if (owner.getUuid().equals(player.getUuid())) ownerName = "your ";
+            else ownerName = owner.getName() + "'s ";
+
+        } else {
+            ownerName = "";
+        }
 
         if (waypoint != null && Main.serverState.waypointAccess(waypoint, player)) {
-            String ownerName;
-            if (waypoint.getOwner() != null) {
-                OfflinePlayer owner = waypoint.getOwnerPlayer();
-                if (owner == null) ownerName = "ERR: UNKNOWN PLAYER ";
-                else if (owner.getUuid().equals(player.getUuid())) ownerName = "your ";
-                else ownerName = owner.getName() + "'s ";
-
-            } else {
-                ownerName = "";
-            }
-
             BlockPos wpPos = waypoint.getPosition();
             ServerWorld world = server.getWorld(waypoint.getWorldRegKey());
             if ( world == null ) return -1;
@@ -288,12 +291,13 @@ public class WpsCommand {
             messageText = () -> Text.literal("Teleported to ")
                     .append(Text.literal(ownerName).formatted(PLAYER_COLOR))
                     .append(waypoint.getAccessFormatted())
-                    .append(Text.literal(" waypoint "))
+                    .append(Text.literal("waypoint "))
                     .append(waypoint.getNameFormatted())
                     .append(Text.literal("."))
                     .formatted(DEFAULT_COLOR);
         } else {
-            messageText = () -> Text.literal("Waypoint ")
+            messageText = () -> Text.literal(ownerName).formatted(PLAYER_COLOR)
+                    .append(Text.literal(" waypoint "))
                     .append(Text.literal( name ).formatted(LINK_INACTIVE_COLOR))
                     .append(Text.literal(" could not be found."))
                     .formatted(DEFAULT_COLOR);
