@@ -164,6 +164,7 @@ public class ServerState extends PersistentState {
     );
 
     public static ServerState getServerState(MinecraftServer server) {
+        // FIXME: This breaks mod compatibility when a mod removes the overworld. Yes that can happen.
         PersistentStateManager persistentStateManager = server
                 .getWorld(World.OVERWORLD).getPersistentStateManager();
 

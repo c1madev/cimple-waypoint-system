@@ -200,7 +200,7 @@ public class WpsCommand {
                         .executes(WpsCommand::wpsListAll)));
     }
 
-    private static int wpsHelp(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private static int wpsHelp(CommandContext<ServerCommandSource> context) {
         Supplier<Text> messageText;
         ServerCommandSource source = context.getSource();
         messageText = () -> Text.literal("-=- -=- -=- /wps help menu -=- -=- -=-").formatted(SECONDARY_COLOR);
@@ -291,15 +291,7 @@ public class WpsCommand {
         return wpsHere(context, false);
     }
 
-    private static int wpsAddOpen(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        return wpsHere(context, false);
-    }
-
     private static int wpsHereMine(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        return wpsHere(context, true);
-    }
-
-    private static int wpsHereOpen(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         return wpsHere(context, true);
     }
 
@@ -398,7 +390,7 @@ public class WpsCommand {
     ) throws CommandSyntaxException {
         AccessLevel accessLevel = AccessLevel.OPEN;
         if (!isOpen) {
-            accessLevel = AccessArgumentParser.accessValueFromContext(context, "access");
+            accessLevel = AccessLevel.fromContext(context, "access");
         }
 
         ServerCommandSource source = context.getSource();
@@ -411,7 +403,7 @@ public class WpsCommand {
         // I swear this was the best option available
         if (!isOpen) {
             try {
-                owner = OfflinePlayerArgumentParser.offlinePlayerFromContext(context, "owner").getUuid();
+                owner = OfflinePlayer.fromContext(context, "owner").getUuid();
             } catch (CommandSyntaxException e) {
                 owner = UuidArgumentType.getUuid(context, "owner");
             }
@@ -515,18 +507,18 @@ public class WpsCommand {
 
         messageText = () -> Text.literal("-=- -=- -=- /" + context.getInput() + " -=- -=- -=-").formatted(SECONDARY_COLOR);
         context.getSource().sendFeedback(messageText, false);
-        for ( int i = 0 ; i < waypoints.size() ; i++ ) {
-            Waypoint waypoint = waypoints.get(i);
+        for (Waypoint waypoint : waypoints) {
             UUID ownerUuid = waypoint.getOwner();
             MutableText ownerTitle;
-            if ( ownerUuid == null ) {
-                if ( waypoint.getAccess() == AccessLevel.SECRET ) ownerTitle = Text.literal("Unowned secret").formatted(SECRET_COLOR);
+            if (ownerUuid == null) {
+                if (waypoint.getAccess() == AccessLevel.SECRET)
+                    ownerTitle = Text.literal("Unowned secret").formatted(SECRET_COLOR);
                 else ownerTitle = Text.literal("Open").formatted(PUBLIC_COLOR);
             } else {
                 OfflinePlayer owner = Main.serverState.getPlayerByUuid(ownerUuid);
-                if ( ownerUuid.equals( playerUuid ) ) {
+                if (ownerUuid.equals(playerUuid)) {
                     ownerTitle = Text.literal("Your ").formatted(PLAYER_COLOR);
-                } else if ( owner == null ) {
+                } else if (owner == null) {
                     ownerTitle = Text.literal("[Error finding name]'s ").formatted(SECONDARY_COLOR);
                 } else {
                     ownerTitle = Text.literal(owner.getName() + "'s ").formatted(PLAYER_COLOR);

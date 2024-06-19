@@ -32,9 +32,7 @@ public class Main implements ModInitializer {
             server.getWorldRegistryKeys();
         });
 
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            serverState.setPlayer(handler.player);
-        });
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> serverState.setPlayer(handler.player));
 
     }
 }
