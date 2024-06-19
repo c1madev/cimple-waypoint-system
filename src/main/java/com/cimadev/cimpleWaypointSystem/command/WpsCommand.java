@@ -269,9 +269,9 @@ public class WpsCommand {
             String ownerName;
             if (waypoint.getOwner() != null) {
                 OfflinePlayer owner = waypoint.getOwnerPlayer();
-                if (owner == null) ownerName = "ERR: UNKNOWN PLAYER";
-                else if (owner.getUuid().equals(player.getUuid())) ownerName = "your";
-                else ownerName = owner.getName() + "'s";
+                if (owner == null) ownerName = "ERR: UNKNOWN PLAYER ";
+                else if (owner.getUuid().equals(player.getUuid())) ownerName = "your ";
+                else ownerName = owner.getName() + "'s ";
 
             } else {
                 ownerName = "";
@@ -288,7 +288,6 @@ public class WpsCommand {
 
             messageText = () -> Text.literal("Teleported to ")
                     .append(Text.literal(ownerName).formatted(PLAYER_COLOR))
-                    .append(" ")
                     .append(waypoint.getAccessFormatted())
                     .append(Text.literal(" waypoint "))
                     .append(waypoint.getNameFormatted())
