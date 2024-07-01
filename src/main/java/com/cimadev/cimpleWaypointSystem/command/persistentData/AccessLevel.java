@@ -24,35 +24,23 @@ public enum AccessLevel {
         this.nameFormatted = Text.literal(this.name).formatted(color);
     }
 
-    public static AccessLevel fromString(String name, boolean allowOpen) throws IllegalArgumentException {
+    public static AccessLevel fromString(String name) throws IllegalArgumentException {
         return switch (name) {
             case "secret" -> AccessLevel.SECRET;
             case "private" -> AccessLevel.PRIVATE;
             case "public" -> AccessLevel.PUBLIC;
-            case "open" -> {
-                if (allowOpen) yield AccessLevel.OPEN;
-                throw new IllegalArgumentException("Access level OPEN is not allowed here");
-            }
+            case "open" ->  AccessLevel.OPEN;
             default -> throw new IllegalArgumentException(name + " is not an acceptable access name.");
         };
     }
 
-    public static AccessLevel fromContext(
-            CommandContext<ServerCommandSource> context,
-            String id
-    ) throws CommandSyntaxException {
-        return fromContext(context, id, true);
-    }
+    public static AccessLevel fromContext(CommandContext<ServerCommandSource> context, String id)
+            throws CommandSyntaxException {
 
-    public static AccessLevel fromContext(
-            CommandContext<ServerCommandSource> context,
-            String id,
-            boolean allowOpen
-    ) throws CommandSyntaxException {
         String access = StringArgumentType.getString( context , id );
         try {
-            return fromString( access , allowOpen );
-        } catch ( IllegalArgumentException i ) {
+            return fromString(access);
+        } catch (IllegalArgumentException e) {
             throw new SimpleCommandExceptionType(() -> "Invalid access type " + access + ".").create();
         }
     }

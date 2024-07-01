@@ -413,6 +413,10 @@ public class WpsCommand {
         if (!isOpen) {
             accessLevel = AccessLevel.fromContext(context, "access");
         }
+        if (!isOpen && accessLevel == AccessLevel.OPEN) {
+            throw new SimpleCommandExceptionType(() -> "Cannot use access " + AccessLevel.OPEN.getNameFormatted() + " with owned waypoints." +
+                    " For free access to an owned waypoint, use " + AccessLevel.PUBLIC.getNameFormatted() + ".").create();
+        }
 
         ServerCommandSource source = context.getSource();
         String name = StringArgumentType.getString(context, "name");

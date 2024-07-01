@@ -111,7 +111,7 @@ public class Waypoint {
         this.position = new BlockPos( position[0], position[1], position[2] );
         this.yaw = nbt.getInt("yaw");
         try {
-            this.access = AccessLevel.fromString(nbt.getString("access"), true);
+            this.access = AccessLevel.fromString(nbt.getString("access"));
         } catch (IllegalArgumentException i) {
             /*todo: log the problem*/
             this.access = AccessLevel.SECRET;
