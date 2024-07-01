@@ -2,11 +2,13 @@ package com.cimadev.cimpleWaypointSystem.command.persistentData;
 
 import com.cimadev.cimpleWaypointSystem.Main;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -37,7 +39,7 @@ public class ServerState extends PersistentState {
         worldWideWaypoints.remove(waypointKey);
     }
 
-    public Waypoint getWaypoint(WaypointKey waypointKey) {
+    public @Nullable Waypoint getWaypoint(WaypointKey waypointKey) {
         return worldWideWaypoints.get(waypointKey);
     }
 
@@ -126,7 +128,8 @@ public class ServerState extends PersistentState {
     }
 
     @Override
-    public NbtCompound writeNbt(NbtCompound nbt) { // todo: build a playerList, waypointList and homesList NbtElement to avoid redundancy of key (if possible)
+    public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+        // todo: build a playerList, waypointList and homesList NbtElement to avoid redundancy of key (if possible)
         NbtCompound pList = new NbtCompound();
         playersByUuid.forEach((uuid, offlinePlayer) -> pList.put(uuid.toString(), offlinePlayer.toNbt()));
         nbt.put("playerList", pList);
@@ -142,7 +145,7 @@ public class ServerState extends PersistentState {
         return nbt;
     }
 
-    public static ServerState createFromNbt(NbtCompound tag) {
+    public static ServerState createFromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         ServerState serverState = new ServerState();
         NbtCompound pList = tag.getCompound("playerList");
         pList.getKeys().forEach(key -> serverState.loadPlayer( OfflinePlayer.fromNbt( pList.getCompound(key) ) ) );

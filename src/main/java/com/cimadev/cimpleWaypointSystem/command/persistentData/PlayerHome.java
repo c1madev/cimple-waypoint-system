@@ -57,8 +57,8 @@ public class PlayerHome {
         int position[] = nbt.getIntArray("position");
         this.position = new BlockPos( position[0], position[1], position[2] );
         this.yaw = nbt.getInt("yaw");
-        Identifier regKeyVal = new Identifier(nbt.getString( "worldRegKeyValue" ));
-        Identifier regKeyReg = new Identifier(nbt.getString( "worldRegKeyRegistry" ));
+        Identifier regKeyVal = Identifier.of(nbt.getString( "worldRegKeyValue" ));
+        Identifier regKeyReg = Identifier.of(nbt.getString( "worldRegKeyRegistry" ));
         this.worldRegKey = RegistryKey.of( RegistryKey.ofRegistry(regKeyReg), regKeyVal );
         this.owner = nbt.getUuid("owner");
     }

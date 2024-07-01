@@ -75,16 +75,18 @@ public class HomeCommand {
         ServerWorld world;
         BlockPos homePos;
         float yaw = 0;
-        boolean respawnForced;
 
+        // Determine world, homePos, respawnForced
         if ( playerHome == null ) {
+            // Set target location to spawn point
             world = player.getServer().getWorld(player.getSpawnPointDimension());
             homePos = player.getSpawnPointPosition();
-            respawnForced = false;
 
             if ( homePos == null ) {
-                homePos = player.getServer().getOverworld().getSpawnPos();
+                world = player.getServer().getOverworld();
+                homePos = world.getSpawnPos();
             }
+
             MutableText spawnpoint = Text.literal("spawnpoint").formatted(LINK_COLOR, Formatting.UNDERLINE);
             Style style = spawnpoint.getStyle();
             HoverEvent spawncoords = new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("x: " + homePos.getX() + ", y: " + homePos.getY() + ", z: " + homePos.getZ()));
@@ -94,10 +96,10 @@ public class HomeCommand {
                     .append(".")
                     .formatted(DEFAULT_COLOR);
         } else {
+            // Set target location to home
             homePos = playerHome.getPosition();
             yaw = playerHome.getYaw();
             world = player.getServer().getWorld(playerHome.worldRegistryKey());
-            respawnForced = true;
 
             messageText = () -> Text.literal("Teleported to your ")
                     .append(playerHome.positionHover("home"))
@@ -105,16 +107,7 @@ public class HomeCommand {
                     .formatted(DEFAULT_COLOR);
         }
 
-        Optional<Vec3d> teleportPosMaybe = ServerPlayerEntity.findRespawnPosition(world, homePos, 0, respawnForced, true);
-        if ( teleportPosMaybe.isEmpty() ) {
-            world = player.getServer().getOverworld();
-            homePos = world.getSpawnPos();
-            respawnForced = true;
-            teleportPosMaybe = ServerPlayerEntity.findRespawnPosition(world, homePos, 0, respawnForced, true);
-        }
-        Vec3d teleportPos = teleportPosMaybe.get();
-
-        player.teleport(world, teleportPos.getX(), teleportPos.getY(), teleportPos.getZ() , yaw, 0);
+        player.teleport(world, homePos.getX(), homePos.getY(), homePos.getZ() , yaw, 0);
 
         context.getSource().sendFeedback(messageText, true);
 
@@ -148,7 +141,7 @@ public class HomeCommand {
             ServerWorld world = player.getServer().getWorld(playerHome.worldRegistryKey());
             String worldName;
             if ( world != null ) {
-                worldName = world.getDimensionKey().getValue().getPath(); // Iamhere
+                worldName = world.getDimensionEntry().getKey().get().getValue().getPath(); // Iamhere
             } else {
                 worldName = "[world could not be identified]";
             }

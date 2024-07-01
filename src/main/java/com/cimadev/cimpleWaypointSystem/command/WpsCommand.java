@@ -283,10 +283,7 @@ public class WpsCommand {
             ServerWorld world = server.getWorld(waypoint.getWorldRegKey());
             if ( world == null ) return -1;
             int yaw = waypoint.getYaw();
-            Optional<Vec3d> teleportPosMaybe = ServerPlayerEntity.findRespawnPosition(world, wpPos, 0, true, true);
-            if ( teleportPosMaybe.isEmpty() ) return -1;
-            Vec3d teleportPos = teleportPosMaybe.get();
-            player.teleport(world, teleportPos.getX(), teleportPos.getY(), teleportPos.getZ(), yaw, 0);
+            player.teleport(world, wpPos.getX(), wpPos.getY(), wpPos.getZ(), yaw, 0);
 
             messageText = () -> Text.literal("Teleported to ")
                     .append(Text.literal(ownerName).formatted(PLAYER_COLOR))

@@ -34,10 +34,7 @@ public class SpawnCommand {
         ServerPlayerEntity player = commandSource.getPlayerOrThrow();
         ServerWorld overworld = player.getServer().getOverworld();
         BlockPos spawn = overworld.getSpawnPos();
-        Optional<Vec3d> teleportPosMaybe = ServerPlayerEntity.findRespawnPosition(overworld, spawn, 0, true, true);
-        if ( teleportPosMaybe.isEmpty() ) return -1;
-        Vec3d teleportPos = teleportPosMaybe.get();
-        player.teleport(overworld, teleportPos.getX(), teleportPos.getY(), teleportPos.getZ(), 0, 0);
+        player.teleport(overworld, spawn.getX(), spawn.getY(), spawn.getZ(), 0, 0);
         player.requestTeleport(spawn.getX(), spawn.getY(), spawn.getZ());
         Supplier<Text> messageText = () -> Text.literal("Teleported to the spawnpoint.").formatted(DEFAULT_COLOR);
         commandSource.sendFeedback(messageText, false);

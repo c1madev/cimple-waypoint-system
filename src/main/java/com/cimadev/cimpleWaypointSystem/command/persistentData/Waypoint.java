@@ -116,8 +116,8 @@ public class Waypoint {
             /*todo: log the problem*/
             this.access = AccessLevel.SECRET;
         }
-        Identifier regKeyVal = new Identifier(nbt.getString( "worldRegKeyValue" ));
-        Identifier regKeyReg = new Identifier(nbt.getString( "worldRegKeyRegistry" ));
+        Identifier regKeyVal = Identifier.of(nbt.getString( "worldRegKeyValue" ));
+        Identifier regKeyReg = Identifier.of(nbt.getString( "worldRegKeyRegistry" ));
         this.worldRegKey = RegistryKey.of( RegistryKey.ofRegistry(regKeyReg), regKeyVal );
     }
 
