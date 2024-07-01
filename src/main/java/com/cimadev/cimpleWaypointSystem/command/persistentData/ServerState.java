@@ -47,11 +47,11 @@ public class ServerState extends PersistentState {
         return new HashMap<>(worldWideWaypoints);
     }
 
-    public OfflinePlayer getPlayerByName(String name) {
+    public @Nullable OfflinePlayer getPlayerByName(String name) {
         return playersByName.get(name);
     }
 
-    public OfflinePlayer getPlayerByUuid(UUID uuid) {
+    public @Nullable OfflinePlayer getPlayerByUuid(UUID uuid) {
         return playersByUuid.get(uuid);
     }
 

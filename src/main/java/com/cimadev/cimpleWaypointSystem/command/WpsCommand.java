@@ -73,8 +73,8 @@ public class WpsCommand {
             ""
     };
 
-    private static AccessSuggestionProvider accessSuggestionsAdminsOpen = new AccessSuggestionProvider(source -> source.hasPermissionLevel(3), AccessLevel.OPEN);
-    private static AccessSuggestionProvider accessSuggestionsNoOpen = new AccessSuggestionProvider(AccessLevel.OPEN);
+    private static final AccessSuggestionProvider accessSuggestionsAdminsOpen = new AccessSuggestionProvider(source -> source.hasPermissionLevel(3), AccessLevel.OPEN);
+    private static final AccessSuggestionProvider accessSuggestionsNoOpen = new AccessSuggestionProvider(AccessLevel.OPEN);
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess commandRegistryAccess, CommandManager.RegistrationEnvironment registrationEnvironment) {
 
@@ -257,23 +257,30 @@ public class WpsCommand {
         String name = StringArgumentType.getString(context, "name");
 
         UUID ownerUuid;
+        @Nullable OfflinePlayer owner;
         switch (ownedBy) {
-            case 0 -> ownerUuid = null;
-            case 1 -> ownerUuid = player.getUuid();
+            case 0 -> {
+                ownerUuid = null;
+                owner = null;
+            }
+            case 1 -> {
+                ownerUuid = player.getUuid();
+                // FIXME: Returns null if the player isn't found, causing a NullPointerException
+                //  Realistically that won't happen, because they must have created a waypoint beforehand
+                //  but if someone manages to clear the OfflinePlayer cache it would.
+                owner = OfflinePlayer.fromUuid(ownerUuid);
+            }
             default -> {
-                OfflinePlayer owner = OfflinePlayer.fromContext(context, "owner");
+                owner = OfflinePlayer.fromContext(context, "owner");
                 ownerUuid = owner.getUuid();
             }
         }
 
         Waypoint waypoint = Main.serverState.getWaypoint(new WaypointKey(ownerUuid, name));
         String ownerName;
-        if (waypoint.getOwner() != null) {
-            OfflinePlayer owner = waypoint.getOwnerPlayer();
-            if (owner == null) ownerName = "ERR: UNKNOWN PLAYER ";
-            else if (owner.getUuid().equals(player.getUuid())) ownerName = "your ";
+        if (ownerUuid != null) {
+            if (owner.getUuid().equals(player.getUuid())) ownerName = "your ";
             else ownerName = owner.getName() + "'s ";
-
         } else {
             ownerName = "";
         }
@@ -288,7 +295,7 @@ public class WpsCommand {
             messageText = () -> Text.literal("Teleported to ")
                     .append(Text.literal(ownerName).formatted(PLAYER_COLOR))
                     .append(waypoint.getAccessFormatted())
-                    .append(Text.literal("waypoint "))
+                    .append(Text.literal(" waypoint "))
                     .append(waypoint.getNameFormatted())
                     .append(Text.literal("."))
                     .formatted(DEFAULT_COLOR);
