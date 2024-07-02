@@ -724,7 +724,7 @@ public class WpsCommand {
 
         ServerPlayerEntity p = context.getSource().getPlayerOrThrow();
         OfflinePlayer player = Main.serverState.getPlayerByUuid(p.getUuid());
-        OfflinePlayer friend = OfflinePlayer.fromContext(context, "friend");
+        OfflinePlayer friend = OfflinePlayer.fromContext(context, "player");
         if ( friend != null ) {
             boolean newFriend = player.addFriend(friend);
             if ( newFriend ) {
@@ -745,7 +745,7 @@ public class WpsCommand {
 
         ServerPlayerEntity p = context.getSource().getPlayerOrThrow();
         OfflinePlayer player = Main.serverState.getPlayerByUuid(p.getUuid());
-        OfflinePlayer friend = OfflinePlayer.fromContext(context, "friend");
+        OfflinePlayer friend = OfflinePlayer.fromContext(context, "player");
         if ( friend != null ) {
             boolean newFriend = player.removeFriend(friend);
             if ( newFriend ) {
