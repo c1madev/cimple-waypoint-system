@@ -1,5 +1,7 @@
 package com.cimadev.cimpleWaypointSystem.command.persistentData;
 
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
@@ -29,6 +31,14 @@ public class WaypointKey {
     public String toString() {
         if ( this.owner == null ) return name+"/";
         return name+"/"+owner;
+    }
+
+    public NbtCompound toNbt() {
+        NbtCompound nbt = new NbtCompound();
+        nbt.putString("name", this.name);
+        nbt.putUuid("owner", this.owner);
+
+        return nbt;
     }
 
     public static WaypointKey fromString( String waypointKey ) {

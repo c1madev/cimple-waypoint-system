@@ -125,9 +125,9 @@ public class Waypoint {
         return new Waypoint( nbt );
     }
 
-    public NbtCompound writeNbt( ) {
+    public NbtCompound toNbt() {
         NbtCompound nbt = new NbtCompound();
-        nbt.putString("key", key.toString());
+        nbt.put("key", key.toNbt());
         nbt.putIntArray("position", new int[] {position.getX(), position.getY(), position.getZ()});
         nbt.putInt("yaw", yaw);
         nbt.putString("access", access.getName());

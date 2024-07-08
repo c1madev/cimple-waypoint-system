@@ -2,6 +2,8 @@ package com.cimadev.cimpleWaypointSystem.command.persistentData;
 
 import com.cimadev.cimpleWaypointSystem.Main;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -130,28 +132,28 @@ public class ServerState extends PersistentState {
     @Override
     public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
         // todo: build a playerList, waypointList and homesList NbtElement to avoid redundancy of key (if possible)
-        NbtCompound pList = new NbtCompound();
-        playersByUuid.forEach((uuid, offlinePlayer) -> pList.put(uuid.toString(), offlinePlayer.toNbt()));
+        NbtList pList = new NbtList();
+        playersByUuid.values().forEach( offlinePlayer -> pList.add(offlinePlayer.toNbt()) );
         nbt.put("playerList", pList);
 
-        NbtCompound waypointList = new NbtCompound();
-        worldWideWaypoints.forEach((waypointKey, waypoint) -> waypointList.put(waypointKey.toString(), waypoint.writeNbt()));
+        NbtList waypointList = new NbtList();
+        worldWideWaypoints.values().forEach( waypoint -> waypointList.add(waypoint.toNbt()) );
         nbt.put("waypoints",waypointList);
 
-        NbtCompound playerHomesCompound = new NbtCompound();
-        playerHomes.forEach((uuid, playerHome) -> playerHomesCompound.put(uuid.toString(), playerHome.toNbt()));
-        nbt.put("playerHomes", playerHomesCompound);
+        NbtList playerHomesList = new NbtList();
+        playerHomes.values().forEach( playerHome -> playerHomesList.add(playerHome.toNbt()) );
+        nbt.put("playerHomes", playerHomesList);
 
         return nbt;
     }
 
     public static ServerState createFromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         ServerState serverState = new ServerState();
-        NbtCompound pList = tag.getCompound("playerList");
-        pList.getKeys().forEach(key -> serverState.loadPlayer( OfflinePlayer.fromNbt( pList.getCompound(key) ) ) );
+        NbtList pList = tag.getList("playerList", NbtElement.COMPOUND_TYPE);
+        pList.forEach( nbt -> serverState.loadPlayer( OfflinePlayer.fromNbt((NbtCompound) nbt)) );
 
-        NbtCompound waypointList = tag.getCompound("waypoints");
-        waypointList.getKeys().forEach(key -> serverState.setWaypoint( Waypoint.fromNbt( waypointList.getCompound(key) ) ) );
+        NbtList waypointList = tag.getList("waypoints", NbtElement.COMPOUND_TYPE);
+        waypointList.forEach( nbt -> serverState.setWaypoint( Waypoint.fromNbt((NbtCompound) nbt) ) );
 
         NbtCompound playerHomesCompound = tag.getCompound("playerHomes");
         playerHomesCompound.getKeys().forEach(key -> serverState.setPlayerHome( PlayerHome.fromNbt( playerHomesCompound.getCompound(key) ) ) );
