@@ -112,7 +112,7 @@ public class Waypoint implements Comparable<Waypoint> {
         this.position = new BlockPos( position[0], position[1], position[2] );
         this.yaw = nbt.getInt("yaw");
         try {
-            this.access = AccessLevel.fromString(nbt.getString("access"), true);
+            this.access = AccessLevel.fromString(nbt.getString("access"));
         } catch (IllegalArgumentException i) {
             this.access = AccessLevel.SECRET;
             log.warn("Found unknown access level while loading waypoint. Set waypoint to secret");
