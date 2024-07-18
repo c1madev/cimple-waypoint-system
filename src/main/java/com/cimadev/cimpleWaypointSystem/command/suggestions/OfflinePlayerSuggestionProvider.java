@@ -1,4 +1,4 @@
-package com.cimadev.cimpleWaypointSystem.command.sugesstions;
+package com.cimadev.cimpleWaypointSystem.command.suggestions;
 
 import com.cimadev.cimpleWaypointSystem.Main;
 import com.mojang.brigadier.context.CommandContext;
