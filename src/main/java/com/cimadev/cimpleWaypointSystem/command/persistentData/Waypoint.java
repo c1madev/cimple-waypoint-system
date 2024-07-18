@@ -113,8 +113,8 @@ public class Waypoint {
         try {
             this.access = AccessLevel.fromString(nbt.getString("access"), true);
         } catch (IllegalArgumentException i) {
-            /*todo: log the problem*/
             this.access = AccessLevel.SECRET;
+            log.warn("Found unknown access level while loading waypoint. Set waypoint to secret");
         }
         Identifier regKeyVal = Identifier.of(nbt.getString( "worldRegKeyValue" ));
         Identifier regKeyReg = Identifier.of(nbt.getString( "worldRegKeyRegistry" ));
