@@ -45,14 +45,12 @@ public class ServerState extends PersistentState {
         return worldWideWaypoints.get(waypointKey);
     }
 
-    /**
-     * Returns a collection that is a view of all waypoints.
-     * Given that this is a view, it will update when a new waypoint is added.
-     * To prevent this, copy the collection into an <code>ArrayList</code> or similar
-     * @return The view of all waypoints
-     */
-    public Collection<Waypoint> getAllWaypoints() {
-        return worldWideWaypoints.values();
+    public boolean waypointExists(WaypointKey waypointKey) {
+        return worldWideWaypoints.containsKey(waypointKey);
+    }
+
+    public HashMap<WaypointKey, Waypoint> copyWaypointMap() {
+        return new HashMap<>(worldWideWaypoints);
     }
 
     public @Nullable OfflinePlayer getPlayerByName(String name) {

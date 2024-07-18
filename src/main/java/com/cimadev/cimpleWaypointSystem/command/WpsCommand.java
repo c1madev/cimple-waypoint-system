@@ -29,7 +29,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 import static com.cimadev.cimpleWaypointSystem.Main.*;
 import static com.mojang.brigadier.arguments.StringArgumentType.word;
@@ -471,10 +470,8 @@ public class WpsCommand {
         ServerPlayerEntity player = context.getSource().getPlayer();
         if ( player == null ) return wpsListAll(context);
         else {
-            printWaypointsToUser(
-                    context,
-                    WpsUtils.getAccessibleWaypoints(player, null, false, false)
-            );
+            ArrayList<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player, null, false, false);
+            printWaypointsToUser(context, waypoints);
         }
         return 1;
     }
@@ -485,16 +482,15 @@ public class WpsCommand {
         else {
             OfflinePlayer owner = OfflinePlayer.fromContext(context, "owner");
             /*todo: if( owner == null ) error "not a valid player", return 1*/
-            printWaypointsToUser(
-                    context,
-                    WpsUtils.getAccessibleWaypoints(player, owner, false, false)
-            );
+            ArrayList<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player, owner, false, false);
+            printWaypointsToUser(context, waypoints);
         }
         return 1;
     }
 
     private static int wpsListAll(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        printWaypointsToUser(context, WpsUtils.getAllWaypoints());
+        ArrayList<Waypoint> waypoints = WpsUtils.getAllWaypoints();
+        printWaypointsToUser(context, waypoints);
         return 1;
     }
     private static int wpsListOwnedAll(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
@@ -502,10 +498,8 @@ public class WpsCommand {
         ServerPlayerEntity player = context.getSource().getPlayer();
         OfflinePlayer owner = OfflinePlayer.fromContext(context, "owner");
         /*todo: if( owner == null ) error "not a valid player", return 1*/
-        printWaypointsToUser(
-                context,
-                WpsUtils.getAccessibleWaypoints(player, owner, true, false)
-        );
+        ArrayList<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player, owner, true, false);
+        printWaypointsToUser(context, waypoints);
         return 1;
 
     }
@@ -513,35 +507,34 @@ public class WpsCommand {
 
         ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
         OfflinePlayer alsoPlayer = Main.serverState.getPlayerByUuid(player.getUuid());
-        printWaypointsToUser(
-                context,
-                WpsUtils.getAccessibleWaypoints(player, alsoPlayer, false, false)
-        );
+        ArrayList<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player, alsoPlayer, false, false);
+        printWaypointsToUser(context, waypoints);
         return 1;
 
     }
     private static int wpsListOpen(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+
         ServerPlayerEntity player = context.getSource().getPlayer();
-        printWaypointsToUser(
-                context,
-                WpsUtils.getAccessibleWaypoints(player, null, false, true)
-        );
+        ArrayList<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player, null, false, true);
+        printWaypointsToUser(context, waypoints);
         return 1;
 
     }
 
-    private static void printWaypointsToUser(CommandContext<ServerCommandSource> context, Stream<Waypoint> waypoints) {
+    private static void printWaypointsToUser(CommandContext<ServerCommandSource> context, ArrayList<Waypoint> waypoints) {
+        Supplier<Text> messageText;
         ServerPlayerEntity player = context.getSource().getPlayer();
         UUID playerUuid = ( player == null ) ? null : player.getUuid();
 
-        context.getSource().sendFeedback(
-                () -> Text.literal("-=- -=- -=- /" + context.getInput() + " -=- -=- -=-").formatted(SECONDARY_COLOR),
-                false
-        );
-        // Very dirty, but the compiler wants to be thread-safe about it.
-        // This isn't thread-safe at all, but it doesn't care. Magic *shrug*
-        final boolean[] foundWaypoints = new boolean[1];
-        waypoints.forEachOrdered(waypoint -> {
+        if ( waypoints.isEmpty() ) {
+            messageText = () -> Text.literal("No waypoints found.").formatted(DEFAULT_COLOR);
+            context.getSource().sendFeedback(messageText, false);
+            return;
+        }
+
+        messageText = () -> Text.literal("-=- -=- -=- /" + context.getInput() + " -=- -=- -=-").formatted(SECONDARY_COLOR);
+        context.getSource().sendFeedback(messageText, false);
+        for (Waypoint waypoint : waypoints) {
             UUID ownerUuid = waypoint.getOwner();
             MutableText ownerTitle;
             if (ownerUuid == null) {
@@ -558,7 +551,7 @@ public class WpsCommand {
                     ownerTitle = Text.literal(owner.getName() + "'s ").formatted(PLAYER_COLOR);
                 }
             }
-            final Supplier<Text> waypointText = () -> Text.literal("")
+            messageText = () -> Text.literal("")
                     .append(ownerTitle)
                     .append((ownerUuid == null) ? Text.literal("") : waypoint.getAccessFormatted()) // dirty because lazy
                     .append(" waypoint ")
@@ -566,18 +559,10 @@ public class WpsCommand {
                     .append(".")
                     .formatted(DEFAULT_COLOR);
 
-            context.getSource().sendFeedback(waypointText, false);
-            foundWaypoints[0] = true;
-        });
-        if (!foundWaypoints[0])
-            context.getSource().sendFeedback(
-                    () -> Text.literal("No waypoints found.").formatted(DEFAULT_COLOR),
-                    false
-            );
-        context.getSource().sendFeedback(
-                () -> Text.literal("-=- -=- -=- -=- -=- -=- -=- -=- -=- -=-").formatted(SECONDARY_COLOR),
-                false
-        );
+            context.getSource().sendFeedback(messageText, false);
+        }
+        messageText = () -> Text.literal("-=- -=- -=- -=- -=- -=- -=- -=- -=- -=-").formatted(SECONDARY_COLOR);
+        context.getSource().sendFeedback(messageText, false);
     }
 
     private static int wpsRemoveMine(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
