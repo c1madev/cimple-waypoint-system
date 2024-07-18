@@ -10,6 +10,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.jetbrains.annotations.Nullable;
@@ -18,7 +19,7 @@ import java.util.UUID;
 
 import static com.cimadev.cimpleWaypointSystem.Main.*;
 
-public class Waypoint {
+public class Waypoint implements Comparable<Waypoint> {
     private static final Logger log = LoggerFactory.getLogger(Waypoint.class);
     private final WaypointKey key;
     private BlockPos position;
@@ -137,4 +138,53 @@ public class Waypoint {
         return nbt;
     }
 
+    /**
+     * Compares this object with the specified object for order.  Returns a
+     * negative integer, zero, or a positive integer as this object is less
+     * than, equal to, or greater than the specified object.
+     *
+     * <p>The implementor must ensure {@link Integer#signum
+     * signum}{@code (x.compareTo(y)) == -signum(y.compareTo(x))} for
+     * all {@code x} and {@code y}.  (This implies that {@code
+     * x.compareTo(y)} must throw an exception if and only if {@code
+     * y.compareTo(x)} throws an exception.)
+     *
+     * <p>The implementor must also ensure that the relation is transitive:
+     * {@code (x.compareTo(y) > 0 && y.compareTo(z) > 0)} implies
+     * {@code x.compareTo(z) > 0}.
+     *
+     * <p>Finally, the implementor must ensure that {@code
+     * x.compareTo(y)==0} implies that {@code signum(x.compareTo(z))
+     * == signum(y.compareTo(z))}, for all {@code z}.
+     *
+     * @param other the object to be compared.
+     * @return a negative integer, zero, or a positive integer as this object
+     * is less than, equal to, or greater than the specified object.
+     * @throws NullPointerException if the specified object is null
+     * @throws ClassCastException   if the specified object's type prevents it
+     *                              from being compared to this object.
+     * @apiNote It is strongly recommended, but <i>not</i> strictly required that
+     * {@code (x.compareTo(y)==0) == (x.equals(y))}.  Generally speaking, any
+     * class that implements the {@code Comparable} interface and violates
+     * this condition should clearly indicate this fact.  The recommended
+     * language is "Note: this class has a natural ordering that is
+     * inconsistent with equals."
+     */
+    @Override
+    public int compareTo(@NotNull Waypoint other) {
+        // TODO: WTF is going on here?
+        OfflinePlayer owner1 = this.getOwnerPlayer();
+        OfflinePlayer owner2 = other.getOwnerPlayer();
+
+        if ( owner1 == null ) return -1;
+        else if (owner2 == null) return 1;
+
+        int ownerRelation = owner1.getName().compareTo(owner2.getName());
+        if (ownerRelation > 0) return 1;
+        else if (ownerRelation < 0) return -1;
+        else {
+            int nameRelation = this.getName().compareTo(other.getName());
+            return Integer.compare(nameRelation, 0);
+        }
+    }
 }
