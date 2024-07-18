@@ -21,7 +21,6 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.*;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
@@ -80,23 +79,28 @@ public class WpsCommand {
 
         dispatcher.register(CommandManager.literal(COMMAND_NAME)
                 .then(CommandManager.argument("name", word())
-                        .executes(WpsCommand::wpsGoSelf)
+                        .executes(WpsCommand::wpsGoDerived)
                         .then(CommandManager.argument("owner", word())
                                 .suggests(new OfflinePlayerSuggestionProvider())
-                                .executes(WpsCommand::wpsGo))
+                                .executes(WpsCommand::wpsGoOwned)
+                        )
                         .then(CommandManager.literal("open")
-                                .executes(WpsCommand::wpsGoOpen)))
+                                .executes(WpsCommand::wpsGoOpen)
+                ))
                 .then(CommandManager.literal("help")
-                        .executes(WpsCommand::wpsHelp))
+                        .executes(WpsCommand::wpsHelp)
+                )
                 .then(CommandManager.literal("go")
                         .then(CommandManager.argument("name", word())
                                 .suggests(new WaypointSuggestionProvider(true))
-                                .executes(WpsCommand::wpsGoSelf)
+                                .executes(WpsCommand::wpsGoDerived)
                                 .then(CommandManager.argument("owner", word())
                                         .suggests(new OfflinePlayerSuggestionProvider())
-                                        .executes(WpsCommand::wpsGo))
+                                        .executes(WpsCommand::wpsGoOwned)
+                                )
                                 .then(CommandManager.literal("open")
-                                        .executes(WpsCommand::wpsGoOpen))))
+                                        .executes(WpsCommand::wpsGoOpen)
+                )))
                 .then(CommandManager.literal("here")
                         .then(CommandManager.argument("name", word())
                                 .executes(WpsCommand::wpsHereMine)
@@ -117,10 +121,7 @@ public class WpsCommand {
                                         .then(CommandManager.argument("access", word())
                                                 .suggests(accessSuggestionsNoOpen)
                                                 .executes(WpsCommand::wpsSet)
-                                                .then(CommandManager.argument(
-                                                                "pos",
-                                                                BlockPosArgumentType.blockPos()
-                                                        )
+                                                .then(CommandManager.argument("pos", BlockPosArgumentType.blockPos())
                                                         .executes(WpsCommand::wpsSet)
                                                         .then(CommandManager.argument("dimension", DimensionArgumentType.dimension())
                                                                 .executes(WpsCommand::wpsSet)
@@ -130,24 +131,16 @@ public class WpsCommand {
                                                                 )
                                                                         .executes(WpsCommand::wpsSet)
                                                                 )
-                                                        )))
-                                )
+                                ))))
                                 .then(CommandManager.literal("open")
                                         .executes(WpsCommand::wpsSetOpen)
-                                        .then(CommandManager.argument(
-                                                        "pos",
-                                                        BlockPosArgumentType.blockPos()
-                                                )
+                                        .then(CommandManager.argument("pos", BlockPosArgumentType.blockPos())
                                                 .executes(WpsCommand::wpsSetOpen)
                                                 .then(CommandManager.argument("dimension", DimensionArgumentType.dimension())
                                                         .executes(WpsCommand::wpsSet)
-                                                        .then(CommandManager.argument(
-                                                                        "yaw",
-                                                                        DoubleArgumentType.doubleArg(-90, 90)
-                                                                )
+                                                        .then(CommandManager.argument("yaw", DoubleArgumentType.doubleArg(-90, 90))
                                                                 .executes(WpsCommand::wpsSetOpen)
-                                                        )
-                                                )))
+                                ))))
                         ))
                 .then(CommandManager.literal("list")
                         .executes(WpsCommand::wpsListAccessible)
@@ -239,47 +232,38 @@ public class WpsCommand {
     }
 
     private static int wpsGoOpen(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        return wpsGo(context, 0);
+        return executeWpsGo(context, null);
     }
 
-    private static int wpsGoSelf(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        return wpsGo(context, 1);
+    private static int wpsGoDerived(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        String waypointName = StringArgumentType.getString(context, "name");
+        if (Main.serverState.waypointExists(new WaypointKey(null, waypointName)))
+            return executeWpsGo(context, null);
+        else
+            return executeWpsGo(
+                    context,
+                    OfflinePlayer.fromUuid(context.getSource().getPlayerOrThrow().getUuid())
+            );
+    }
+    private static int wpsGoOwned(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        return executeWpsGo(context, OfflinePlayer.fromContext(context, "owner"));
     }
 
-    private static int wpsGo(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        return wpsGo(context, 2);
-    }
-    private static int wpsGo(CommandContext<ServerCommandSource> context, int ownedBy) throws CommandSyntaxException {
+    private static int executeWpsGo(
+            CommandContext<ServerCommandSource> context,
+            @Nullable OfflinePlayer owner
+    ) throws CommandSyntaxException {
         Supplier<Text> messageText;
         ServerCommandSource commandSource = context.getSource();
         ServerPlayerEntity player = commandSource.getPlayerOrThrow();
         MinecraftServer server = commandSource.getServer();
         String name = StringArgumentType.getString(context, "name");
 
-        UUID ownerUuid;
-        @Nullable OfflinePlayer owner;
-        switch (ownedBy) {
-            case 0 -> {
-                ownerUuid = null;
-                owner = null;
-            }
-            case 1 -> {
-                ownerUuid = player.getUuid();
-                // FIXME: Returns null if the player isn't found, causing a NullPointerException
-                //  Realistically that won't happen, because they must have created a waypoint beforehand
-                //  but if someone manages to clear the OfflinePlayer cache it would.
-                owner = OfflinePlayer.fromUuid(ownerUuid);
-            }
-            default -> {
-                owner = OfflinePlayer.fromContext(context, "owner");
-                ownerUuid = owner.getUuid();
-            }
-        }
-
+        UUID ownerUuid = owner == null ? null : owner.getUuid();
         Waypoint waypoint = Main.serverState.getWaypoint(new WaypointKey(ownerUuid, name));
         String ownerName;
-        if (ownerUuid != null) {
-            if (owner.getUuid().equals(player.getUuid())) ownerName = "your ";
+        if (owner != null) {
+            if (ownerUuid.equals(player.getUuid())) ownerName = "your ";
             else ownerName = owner.getName() + "'s ";
         } else {
             ownerName = "";
