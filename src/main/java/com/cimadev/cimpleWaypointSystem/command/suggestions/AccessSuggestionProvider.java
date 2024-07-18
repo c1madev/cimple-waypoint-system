@@ -1,4 +1,4 @@
-package com.cimadev.cimpleWaypointSystem.command.sugesstions;
+package com.cimadev.cimpleWaypointSystem.command.suggestions;
 
 import com.cimadev.cimpleWaypointSystem.command.persistentData.AccessLevel;
 import com.mojang.brigadier.context.CommandContext;

@@ -2,9 +2,9 @@ package com.cimadev.cimpleWaypointSystem.command;
 
 import com.cimadev.cimpleWaypointSystem.Main;
 import com.cimadev.cimpleWaypointSystem.command.persistentData.*;
-import com.cimadev.cimpleWaypointSystem.command.sugesstions.AccessSuggestionProvider;
-import com.cimadev.cimpleWaypointSystem.command.sugesstions.OfflinePlayerSuggestionProvider;
-import com.cimadev.cimpleWaypointSystem.command.sugesstions.WaypointSuggestionProvider;
+import com.cimadev.cimpleWaypointSystem.command.suggestions.AccessSuggestionProvider;
+import com.cimadev.cimpleWaypointSystem.command.suggestions.OfflinePlayerSuggestionProvider;
+import com.cimadev.cimpleWaypointSystem.command.suggestions.WaypointSuggestionProvider;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
