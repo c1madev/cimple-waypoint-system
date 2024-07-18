@@ -1,4 +1,5 @@
-package com.cimadev.cimpleWaypointSystem.command;
+package com.cimadev.cimpleWaypointSystem.command.sugesstions;
+import com.cimadev.cimpleWaypointSystem.command.WpsUtils;
 import com.cimadev.cimpleWaypointSystem.command.persistentData.AccessLevel;
 import com.cimadev.cimpleWaypointSystem.command.persistentData.OfflinePlayer;
 import com.cimadev.cimpleWaypointSystem.command.persistentData.Waypoint;
