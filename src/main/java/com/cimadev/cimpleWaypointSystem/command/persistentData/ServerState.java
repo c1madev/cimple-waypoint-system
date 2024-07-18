@@ -83,19 +83,18 @@ public class ServerState extends PersistentState {
     }
 
     public boolean waypointAccess(Waypoint waypoint, UUID playerUuid) {
-        UUID ownerUuid = waypoint.getOwner();
+        OfflinePlayer owner = waypoint.getOwnerPlayer();
         if ( waypoint.getAccess() == AccessLevel.OPEN || waypoint.getAccess() == AccessLevel.PUBLIC ) return true;       // all public waypoints freely accessible
 
         // only happens if access type of an open waypoint was corrupted in NBT. In this case, ownerUuid == null && AccessLevel.SECRET
         // waypoint only visible by admins by listing all waypoints
-        if ( ownerUuid == null ) return false;
+        if ( owner == null ) return false;
 
-        OfflinePlayer owner = getPlayerByUuid(ownerUuid);
         if ( waypoint.getAccess() == AccessLevel.PRIVATE && owner.likes( playerUuid ) ) {
             return true;
         }
 
-        return waypoint.getAccess() == AccessLevel.SECRET && ownerUuid.equals(playerUuid);
+        return waypoint.getAccess() == AccessLevel.SECRET && owner.getUuid().equals(playerUuid);
     }
 
     private void setPlayer(String playerName, UUID playerUuid) {
