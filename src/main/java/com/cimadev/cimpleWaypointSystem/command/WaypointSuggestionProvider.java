@@ -47,10 +47,10 @@ public class WaypointSuggestionProvider implements SuggestionProvider<ServerComm
         ArrayList<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player,null, false, false);
         for (Waypoint waypoint : waypoints) {
             String suggestion;
-            if (!withOwner || (player != null && player.getUuid().equals(waypoint.getOwner())))
+            if (!withOwner)
                 suggestion = waypoint.getName();
             else if (waypoint.getAccess() == AccessLevel.OPEN)
-                suggestion = waypoint.getName() + " open";
+                suggestion = waypoint.getName() + " " + AccessLevel.OPEN.getName();
             else {
                 OfflinePlayer owner = waypoint.getOwnerPlayer();
                 if (owner == null) {
