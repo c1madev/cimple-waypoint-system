@@ -41,10 +41,8 @@ public class WaypointKey {
         return nbt;
     }
 
-    public static WaypointKey fromString( String waypointKey ) {
-        String parts[] = waypointKey.split("/", 2);
-        if ( parts[1] == "" ) return new WaypointKey(null, parts[0]);
-        return new WaypointKey(UUID.fromString(parts[1]), parts[0]);
+    public static WaypointKey fromNbt( NbtCompound nbt ) {
+        return new WaypointKey(nbt.getUuid("owner"), nbt.getString("name"));
     }
 
     @Override

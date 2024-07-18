@@ -106,7 +106,7 @@ public class Waypoint {
     }
 
     private Waypoint( NbtCompound nbt ) {
-        this.key = WaypointKey.fromString(nbt.getString("key"));
+        this.key = WaypointKey.fromNbt(nbt.getCompound("key"));
         int[] position = nbt.getIntArray("position");
         this.position = new BlockPos( position[0], position[1], position[2] );
         this.yaw = nbt.getInt("yaw");
