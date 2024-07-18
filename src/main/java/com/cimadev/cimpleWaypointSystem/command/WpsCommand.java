@@ -470,7 +470,7 @@ public class WpsCommand {
         ServerPlayerEntity player = context.getSource().getPlayer();
         if ( player == null ) return wpsListAll(context);
         else {
-            ArrayList<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player, null, false, false);
+            List<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player, null, false, false);
             printWaypointsToUser(context, waypoints);
         }
         return 1;
@@ -482,14 +482,14 @@ public class WpsCommand {
         else {
             OfflinePlayer owner = OfflinePlayer.fromContext(context, "owner");
             /*todo: if( owner == null ) error "not a valid player", return 1*/
-            ArrayList<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player, owner, false, false);
+            List<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player, owner, false, false);
             printWaypointsToUser(context, waypoints);
         }
         return 1;
     }
 
     private static int wpsListAll(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ArrayList<Waypoint> waypoints = WpsUtils.getAllWaypoints();
+        List<Waypoint> waypoints = WpsUtils.getAllWaypoints();
         printWaypointsToUser(context, waypoints);
         return 1;
     }
@@ -498,7 +498,7 @@ public class WpsCommand {
         ServerPlayerEntity player = context.getSource().getPlayer();
         OfflinePlayer owner = OfflinePlayer.fromContext(context, "owner");
         /*todo: if( owner == null ) error "not a valid player", return 1*/
-        ArrayList<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player, owner, true, false);
+        List<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player, owner, true, false);
         printWaypointsToUser(context, waypoints);
         return 1;
 
@@ -507,7 +507,7 @@ public class WpsCommand {
 
         ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
         OfflinePlayer alsoPlayer = Main.serverState.getPlayerByUuid(player.getUuid());
-        ArrayList<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player, alsoPlayer, false, false);
+        List<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player, alsoPlayer, false, false);
         printWaypointsToUser(context, waypoints);
         return 1;
 
@@ -515,13 +515,13 @@ public class WpsCommand {
     private static int wpsListOpen(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
 
         ServerPlayerEntity player = context.getSource().getPlayer();
-        ArrayList<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player, null, false, true);
+        List<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player, null, false, true);
         printWaypointsToUser(context, waypoints);
         return 1;
 
     }
 
-    private static void printWaypointsToUser(CommandContext<ServerCommandSource> context, ArrayList<Waypoint> waypoints) {
+    private static void printWaypointsToUser(CommandContext<ServerCommandSource> context, List<Waypoint> waypoints) {
         Supplier<Text> messageText;
         ServerPlayerEntity player = context.getSource().getPlayer();
         UUID playerUuid = ( player == null ) ? null : player.getUuid();
