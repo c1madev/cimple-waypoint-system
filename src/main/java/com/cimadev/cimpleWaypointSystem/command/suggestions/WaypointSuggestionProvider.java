@@ -1,4 +1,5 @@
-package com.cimadev.cimpleWaypointSystem.command;
+package com.cimadev.cimpleWaypointSystem.command.suggestions;
+import com.cimadev.cimpleWaypointSystem.command.WpsUtils;
 import com.cimadev.cimpleWaypointSystem.command.persistentData.AccessLevel;
 import com.cimadev.cimpleWaypointSystem.command.persistentData.OfflinePlayer;
 import com.cimadev.cimpleWaypointSystem.command.persistentData.Waypoint;
@@ -13,7 +14,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class WaypointSuggestionProvider implements SuggestionProvider<ServerCommandSource> {
@@ -44,13 +45,13 @@ public class WaypointSuggestionProvider implements SuggestionProvider<ServerComm
                 Most involved option but possibly best for user experience.
          */
         ServerPlayerEntity player = context.getSource().getPlayer();
-        ArrayList<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player,null, false, false);
+        List<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player,null, false, false);
         for (Waypoint waypoint : waypoints) {
             String suggestion;
-            if (!withOwner || (player != null && player.getUuid().equals(waypoint.getOwner())))
+            if (!withOwner)
                 suggestion = waypoint.getName();
             else if (waypoint.getAccess() == AccessLevel.OPEN)
-                suggestion = waypoint.getName() + " open";
+                suggestion = waypoint.getName() + " " + AccessLevel.OPEN.getName();
             else {
                 OfflinePlayer owner = waypoint.getOwnerPlayer();
                 if (owner == null) {

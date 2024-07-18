@@ -110,6 +110,10 @@ public class OfflinePlayer implements Comparable<OfflinePlayer> {
         return Main.serverState.getPlayerByName( name );
     }
 
+    public static OfflinePlayer fromUuid(UUID uuid){
+        return Main.serverState.getPlayerByUuid(uuid);
+    }
+
     public static OfflinePlayer fromContext(CommandContext<ServerCommandSource> context, String id ) throws CommandSyntaxException {
         String playerName = StringArgumentType.getString(context, id);
         try {

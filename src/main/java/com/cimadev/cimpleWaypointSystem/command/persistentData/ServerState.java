@@ -2,11 +2,15 @@ package com.cimadev.cimpleWaypointSystem.command.persistentData;
 
 import com.cimadev.cimpleWaypointSystem.Main;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -37,19 +41,23 @@ public class ServerState extends PersistentState {
         worldWideWaypoints.remove(waypointKey);
     }
 
-    public Waypoint getWaypoint(WaypointKey waypointKey) {
+    public @Nullable Waypoint getWaypoint(WaypointKey waypointKey) {
         return worldWideWaypoints.get(waypointKey);
     }
 
-    public HashMap<WaypointKey, Waypoint> copyWaypointMap() {
-        return new HashMap<>(worldWideWaypoints);
+    public boolean waypointExists(WaypointKey waypointKey) {
+        return worldWideWaypoints.containsKey(waypointKey);
     }
 
-    public OfflinePlayer getPlayerByName(String name) {
+    public Collection<Waypoint> getAllWaypoints() {
+        return worldWideWaypoints.values();
+    }
+
+    public @Nullable OfflinePlayer getPlayerByName(String name) {
         return playersByName.get(name);
     }
 
-    public OfflinePlayer getPlayerByUuid(UUID uuid) {
+    public @Nullable OfflinePlayer getPlayerByUuid(UUID uuid) {
         return playersByUuid.get(uuid);
     }
 
@@ -75,19 +83,18 @@ public class ServerState extends PersistentState {
     }
 
     public boolean waypointAccess(Waypoint waypoint, UUID playerUuid) {
-        UUID ownerUuid = waypoint.getOwner();
+        OfflinePlayer owner = waypoint.getOwnerPlayer();
         if ( waypoint.getAccess() == AccessLevel.OPEN || waypoint.getAccess() == AccessLevel.PUBLIC ) return true;       // all public waypoints freely accessible
 
         // only happens if access type of an open waypoint was corrupted in NBT. In this case, ownerUuid == null && AccessLevel.SECRET
         // waypoint only visible by admins by listing all waypoints
-        if ( ownerUuid == null ) return false;
+        if ( owner == null ) return false;
 
-        OfflinePlayer owner = getPlayerByUuid(ownerUuid);
         if ( waypoint.getAccess() == AccessLevel.PRIVATE && owner.likes( playerUuid ) ) {
             return true;
         }
 
-        return waypoint.getAccess() == AccessLevel.SECRET && ownerUuid.equals(playerUuid);
+        return waypoint.getAccess() == AccessLevel.SECRET && owner.getUuid().equals(playerUuid);
     }
 
     private void setPlayer(String playerName, UUID playerUuid) {
@@ -126,29 +133,30 @@ public class ServerState extends PersistentState {
     }
 
     @Override
-    public NbtCompound writeNbt(NbtCompound nbt) { // todo: build a playerList, waypointList and homesList NbtElement to avoid redundancy of key (if possible)
-        NbtCompound pList = new NbtCompound();
-        playersByUuid.forEach((uuid, offlinePlayer) -> pList.put(uuid.toString(), offlinePlayer.toNbt()));
+    public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+        // todo: build a playerList, waypointList and homesList NbtElement to avoid redundancy of key (if possible)
+        NbtList pList = new NbtList();
+        playersByUuid.values().forEach( offlinePlayer -> pList.add(offlinePlayer.toNbt()) );
         nbt.put("playerList", pList);
 
-        NbtCompound waypointList = new NbtCompound();
-        worldWideWaypoints.forEach((waypointKey, waypoint) -> waypointList.put(waypointKey.toString(), waypoint.writeNbt()));
+        NbtList waypointList = new NbtList();
+        worldWideWaypoints.values().forEach( waypoint -> waypointList.add(waypoint.toNbt()) );
         nbt.put("waypoints",waypointList);
 
-        NbtCompound playerHomesCompound = new NbtCompound();
-        playerHomes.forEach((uuid, playerHome) -> playerHomesCompound.put(uuid.toString(), playerHome.toNbt()));
-        nbt.put("playerHomes", playerHomesCompound);
+        NbtList playerHomesList = new NbtList();
+        playerHomes.values().forEach( playerHome -> playerHomesList.add(playerHome.toNbt()) );
+        nbt.put("playerHomes", playerHomesList);
 
         return nbt;
     }
 
-    public static ServerState createFromNbt(NbtCompound tag) {
+    public static ServerState createFromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         ServerState serverState = new ServerState();
-        NbtCompound pList = tag.getCompound("playerList");
-        pList.getKeys().forEach(key -> serverState.loadPlayer( OfflinePlayer.fromNbt( pList.getCompound(key) ) ) );
+        NbtList pList = tag.getList("playerList", NbtElement.COMPOUND_TYPE);
+        pList.forEach( nbt -> serverState.loadPlayer( OfflinePlayer.fromNbt((NbtCompound) nbt)) );
 
-        NbtCompound waypointList = tag.getCompound("waypoints");
-        waypointList.getKeys().forEach(key -> serverState.setWaypoint( Waypoint.fromNbt( waypointList.getCompound(key) ) ) );
+        NbtList waypointList = tag.getList("waypoints", NbtElement.COMPOUND_TYPE);
+        waypointList.forEach( nbt -> serverState.setWaypoint( Waypoint.fromNbt((NbtCompound) nbt) ) );
 
         NbtCompound playerHomesCompound = tag.getCompound("playerHomes");
         playerHomesCompound.getKeys().forEach(key -> serverState.setPlayerHome( PlayerHome.fromNbt( playerHomesCompound.getCompound(key) ) ) );

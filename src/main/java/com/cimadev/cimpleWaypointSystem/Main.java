@@ -3,6 +3,7 @@ package com.cimadev.cimpleWaypointSystem;
 import com.cimadev.cimpleWaypointSystem.command.persistentData.ServerState;
 import com.cimadev.cimpleWaypointSystem.registry.ModRegistries;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.util.Formatting;
 
@@ -24,12 +25,9 @@ public class Main implements ModInitializer {
     @Override
     public void onInitialize() {
         ModRegistries.registerAll();
-        ServerPlayConnectionEvents.INIT.register((handler, server) -> {
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             System.out.println("Initializing server state!");
             serverState = ServerState.getServerState(server);
-            // If the above line breaks at some point, this is probably the correct one:
-            // serverState = ServerState.getServerState(handler.player.getWorld().getServer());
-            server.getWorldRegistryKeys();
         });
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> serverState.setPlayer(handler.player));
