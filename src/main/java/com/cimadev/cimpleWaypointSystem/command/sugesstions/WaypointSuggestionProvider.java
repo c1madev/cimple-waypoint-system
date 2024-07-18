@@ -14,8 +14,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
 public class WaypointSuggestionProvider implements SuggestionProvider<ServerCommandSource> {
     private static final Logger LOGGER = LoggerFactory.getLogger(WaypointSuggestionProvider.class);
@@ -45,8 +45,8 @@ public class WaypointSuggestionProvider implements SuggestionProvider<ServerComm
                 Most involved option but possibly best for user experience.
          */
         ServerPlayerEntity player = context.getSource().getPlayer();
-        ArrayList<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player,null, false, false);
-        for (Waypoint waypoint : waypoints) {
+        Stream<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player,null, false, false);
+        waypoints.forEach(waypoint -> {
             String suggestion;
             if (!withOwner)
                 suggestion = waypoint.getName();
@@ -56,12 +56,12 @@ public class WaypointSuggestionProvider implements SuggestionProvider<ServerComm
                 OfflinePlayer owner = waypoint.getOwnerPlayer();
                 if (owner == null) {
                     LOGGER.warn("Waypoint {} has unknown owner", waypoint.getName());
-                    continue;
+                    return;
                 }
                 suggestion = waypoint.getName() + " " + owner.getName();
             }
             builder.suggest(suggestion);
-        }
+        });
 
         return builder.buildFuture();
     }
