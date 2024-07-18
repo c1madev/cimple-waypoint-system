@@ -14,7 +14,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class WaypointSuggestionProvider implements SuggestionProvider<ServerCommandSource> {
@@ -45,7 +45,7 @@ public class WaypointSuggestionProvider implements SuggestionProvider<ServerComm
                 Most involved option but possibly best for user experience.
          */
         ServerPlayerEntity player = context.getSource().getPlayer();
-        ArrayList<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player,null, false, false);
+        List<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player,null, false, false);
         for (Waypoint waypoint : waypoints) {
             String suggestion;
             if (!withOwner)

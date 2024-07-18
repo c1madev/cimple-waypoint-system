@@ -49,8 +49,8 @@ public class ServerState extends PersistentState {
         return worldWideWaypoints.containsKey(waypointKey);
     }
 
-    public HashMap<WaypointKey, Waypoint> copyWaypointMap() {
-        return new HashMap<>(worldWideWaypoints);
+    public Collection<Waypoint> getAllWaypoints() {
+        return worldWideWaypoints.values();
     }
 
     public @Nullable OfflinePlayer getPlayerByName(String name) {
