@@ -1,6 +1,7 @@
 package com.cimadev.cimpleWaypointSystem;
 
 import com.cimadev.cimpleWaypointSystem.command.persistentData.ServerState;
+import com.cimadev.cimpleWaypointSystem.network.NetworkHandler;
 import com.cimadev.cimpleWaypointSystem.registry.ModRegistries;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -25,6 +26,7 @@ public class Main implements ModInitializer {
     @Override
     public void onInitialize() {
         ModRegistries.registerAll();
+        NetworkHandler.register();
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             System.out.println("Initializing server state!");
             serverState = ServerState.getServerState(server);
