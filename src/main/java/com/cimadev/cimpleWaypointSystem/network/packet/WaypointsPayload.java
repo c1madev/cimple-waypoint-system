@@ -10,21 +10,21 @@ import net.minecraft.network.packet.CustomPayload;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.cimadev.cimpleWaypointSystem.network.PacketTypes.ALL_WAYPOINTS;
+import static com.cimadev.cimpleWaypointSystem.network.PacketTypes.WAYPOINTS;
 
-public record AllWaypointsPayload(List<Waypoint> waypoints) implements CustomPayload {
-    public static final PacketCodec<RegistryByteBuf, AllWaypointsPayload> PACKET_CODEC = PacketCodec.tuple(
-            PacketCodecs.collection(size -> new ArrayList<Waypoint>(), Waypoint.PACKET_CODEC),
-            AllWaypointsPayload::waypoints,
-            AllWaypointsPayload::new
+public record WaypointsPayload(List<WaypointInfo> waypoints) implements CustomPayload {
+    public static final PacketCodec<RegistryByteBuf, WaypointsPayload> PACKET_CODEC = PacketCodec.tuple(
+            PacketCodecs.collection(size -> new ArrayList<>(), WaypointInfo.PACKET_CODEC),
+            WaypointsPayload::waypoints,
+            WaypointsPayload::new
     );
 
     @Override
     public Id<? extends CustomPayload> getId() {
-        return ALL_WAYPOINTS;
+        return WAYPOINTS;
     }
 
     public static void register() {
-        PayloadTypeRegistry.playS2C().register(ALL_WAYPOINTS, PACKET_CODEC);
+        PayloadTypeRegistry.playS2C().register(WAYPOINTS, PACKET_CODEC);
     }
 }

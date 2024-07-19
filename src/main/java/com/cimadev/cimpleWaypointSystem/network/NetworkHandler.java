@@ -2,48 +2,43 @@ package com.cimadev.cimpleWaypointSystem.network;
 
 import com.cimadev.cimpleWaypointSystem.Main;
 import com.cimadev.cimpleWaypointSystem.command.WpsUtils;
-import com.cimadev.cimpleWaypointSystem.network.packet.AccessibleWaypointsPayload;
-import com.cimadev.cimpleWaypointSystem.network.packet.AllWaypointsPayload;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.network.listener.PacketListener;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.PacketType;
+import com.cimadev.cimpleWaypointSystem.command.persistentData.Waypoint;
+import com.cimadev.cimpleWaypointSystem.network.packet.WaypointInfo;
+import com.cimadev.cimpleWaypointSystem.network.packet.WaypointsPayload;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.ArrayList;
-
-import static com.cimadev.cimpleWaypointSystem.network.PacketTypes.ERR_NO_PERMISSION;
+import java.util.List;
 
 public abstract class NetworkHandler {
     private static void registerReceivers() {
-        ServerPlayNetworking.registerGlobalReceiver(PacketTypes.REQ_ALL_WAYPOINTS.id(), (payload, context) -> {
-            if (!context.player().hasPermissionLevel(4)) {
-                context.responseSender().sendPacket(ERR_NO_PERMISSION.make());
-            } else {
-                context.responseSender().sendPacket(
-                        new AllWaypointsPayload(new ArrayList<>(Main.serverState.getAllWaypoints()))
-                );
-            }
-        });
-        ServerPlayNetworking.registerGlobalReceiver(PacketTypes.REQ_ACCESSIBLE_WAYPOINTS.id(), (payload, context) -> {
-            context.responseSender().sendPacket(new AccessibleWaypointsPayload(new ArrayList<>(
-                    WpsUtils.getAccessibleWaypoints(context.player())
-            )));
-            context.responseSender().sendPacket(new Packet<PacketListener>() {
-                @Override
-                public PacketType<? extends Packet<PacketListener>> getPacketId() {
-                    return null;
-                }
 
-                @Override
-                public void apply(PacketListener listener) {
-
-                }
-            });
-        });
     }
 
     public static void register() {
         PacketTypes.register();
         NetworkHandler.registerReceivers();
+
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            final ServerPlayerEntity player = handler.getPlayer();
+
+            List<Waypoint> waypoints;
+            if (handler.getPlayer().hasPermissionLevel(4)) {
+                waypoints = WpsUtils.getAccessibleWaypoints(player);
+            } else {
+                waypoints = WpsUtils.getAllWaypoints();
+            }
+
+            List<WaypointInfo> waypointInfos = new ArrayList<>(waypoints.size());
+            for (Waypoint waypoint : waypoints) {
+                waypointInfos.add(new WaypointInfo(
+                        waypoint,
+                        Main.serverState.waypointAccess(waypoint,player)
+                ));
+            }
+
+            sender.sendPacket(new WaypointsPayload(waypointInfos));
+        });
     }
 }

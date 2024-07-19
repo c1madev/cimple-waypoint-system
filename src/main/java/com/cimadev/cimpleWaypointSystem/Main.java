@@ -33,6 +33,5 @@ public class Main implements ModInitializer {
         });
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> serverState.setPlayer(handler.player));
-
     }
 }
