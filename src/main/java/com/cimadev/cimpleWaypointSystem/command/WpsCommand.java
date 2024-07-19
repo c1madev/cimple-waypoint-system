@@ -319,7 +319,7 @@ public class WpsCommand {
         ServerWorld world = player.getServerWorld();
 
         String name = StringArgumentType.getString(context, "name");
-        AccessLevel access = AccessLevel.PRIVATE;
+        AccessLevel access = config.defaultAccess.get();
         if ( context.getNodes().size() == 4 ) {
             access = AccessLevel.fromContext(context, "access");
         }
