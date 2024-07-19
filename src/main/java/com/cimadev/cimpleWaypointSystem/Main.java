@@ -28,12 +28,12 @@ public class Main implements ModInitializer {
     public static Config config;
     @Override
     public void onInitialize() {
+        config = Config.build();
         ModRegistries.registerAll();
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             System.out.println("Initializing server state!");
             serverState = ServerState.getServerState(server);
         });
-        config = Config.build();
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> serverState.setPlayer(handler.player));
 
