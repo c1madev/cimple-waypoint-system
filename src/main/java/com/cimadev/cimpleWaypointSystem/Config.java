@@ -30,11 +30,6 @@ public class Config {
                 "The default access level when setting a new waypoint. May be any of the defined access levels",
                 "private by default"
         );
-        friendshipEnabled = builder.booleanEntry(
-                "enable-friendship",
-                true,
-                "Enable or disable the friendship mechanic"
-        );
         disabledAccessLevels = builder.entry(
                 "disabled-levels",
                 AccessLevelList.of(),
@@ -48,6 +43,11 @@ public class Config {
                 "Sets behaviour on the /wps go <name> shorthand.",
                 "When set to true, first checks for an open waypoint matching <name>,",
                 "otherwise checks for a self-owned waypoint first."
+        );
+        friendshipEnabled = builder.booleanEntry(
+                "enable-friendship",
+                true,
+                "Enable or disable the friendship mechanic"
         );
     }
 
