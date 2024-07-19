@@ -1,7 +1,11 @@
 package com.cimadev.cimpleWaypointSystem.command.persistentData;
 
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
@@ -20,6 +24,15 @@ import java.util.UUID;
 import static com.cimadev.cimpleWaypointSystem.Main.*;
 
 public class Waypoint implements Comparable<Waypoint> {
+    public static final PacketCodec<RegistryByteBuf, Waypoint> PACKET_CODEC = PacketCodec.tuple(
+            WaypointKey.PACKET_CODEC, buf -> null,
+            BlockPos.PACKET_CODEC, Waypoint::getPosition,
+            RegistryKey.createPacketCodec(RegistryKeys.WORLD), Waypoint::getWorldRegKey,
+            PacketCodecs.INTEGER, Waypoint::getYaw,
+            AccessLevel.PACKET_CODEC, Waypoint::getAccess,
+            Waypoint::new
+    );
+
     private static final Logger log = LoggerFactory.getLogger(Waypoint.class);
     private final WaypointKey key;
     private BlockPos position;
@@ -96,6 +109,14 @@ public class Waypoint implements Comparable<Waypoint> {
         Style waypointStyle = waypointName.getStyle();
         waypointName.setStyle(waypointStyle.withHoverEvent(waypointTooltip));
         return waypointName;
+    }
+
+    private Waypoint(WaypointKey key, BlockPos pos, RegistryKey<World> world, Integer yaw, AccessLevel access) {
+        this.key = key;
+        this.position = pos;
+        this.worldRegKey = world;
+        this.yaw = yaw;
+        this.access = access;
     }
 
     public Waypoint(String name, BlockPos position, Double yaw, RegistryKey<World> world, UUID owner, AccessLevel access) {

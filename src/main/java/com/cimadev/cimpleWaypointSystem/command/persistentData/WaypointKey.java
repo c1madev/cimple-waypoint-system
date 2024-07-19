@@ -1,12 +1,24 @@
 package com.cimadev.cimpleWaypointSystem.command.persistentData;
 
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.codec.PacketCodec;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
 public class WaypointKey {
+    public static final PacketCodec<RegistryByteBuf, WaypointKey> PACKET_CODEC = PacketCodec.of(
+            (key, buf) -> {
+                buf.writeNullable(key.owner, (buf2, uuid) -> buf2.writeUuid(uuid));
+                buf.writeString(key.name);
+            },
+            buf -> new WaypointKey(
+                    buf.readNullable(RegistryByteBuf::readUuid),
+                    buf.readString()
+            )
+    );
+
     @Nullable
     private final UUID owner;
     private String name;

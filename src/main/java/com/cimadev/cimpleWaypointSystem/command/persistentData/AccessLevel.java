@@ -4,6 +4,8 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -15,6 +17,11 @@ public enum AccessLevel {
     PRIVATE("private", PRIVATE_COLOR),
     PUBLIC("public", PUBLIC_COLOR),
     OPEN("open", OPEN_COLOR);
+
+    public static final PacketCodec<RegistryByteBuf, AccessLevel> PACKET_CODEC = PacketCodec.of(
+            (val, buf) -> buf.writeByte(val.ordinal()),
+            buf -> AccessLevel.values()[buf.readByte()]
+    );
 
     private final String name;
     private final Text nameFormatted;
