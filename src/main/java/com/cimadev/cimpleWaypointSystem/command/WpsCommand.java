@@ -247,13 +247,17 @@ public class WpsCommand {
 
     private static int wpsGoDerived(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         String waypointName = StringArgumentType.getString(context, "name");
-        if (Main.serverState.waypointExists(new WaypointKey(null, waypointName)))
-            return executeWpsGo(context, null);
+        boolean preferOpen = config.preferOpenForDerived.get();
+        final CommandFunction forOpen = () -> executeWpsGo(context, null);
+        final CommandFunction forSelf = () -> executeWpsGo(
+                context,
+                OfflinePlayer.fromUuid(context.getSource().getPlayerOrThrow().getUuid())
+        );
+        UUID owner = preferOpen ? null : context.getSource().getPlayerOrThrow().getUuid();
+        if (Main.serverState.waypointExists(new WaypointKey(owner, waypointName)))
+            return preferOpen ? forOpen.run() : forSelf.run();
         else
-            return executeWpsGo(
-                    context,
-                    OfflinePlayer.fromUuid(context.getSource().getPlayerOrThrow().getUuid())
-            );
+            return preferOpen ? forSelf.run() : forOpen.run();
     }
     private static int wpsGoOwned(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         return executeWpsGo(context, OfflinePlayer.fromContext(context, "owner"));
