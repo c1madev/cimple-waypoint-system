@@ -25,9 +25,9 @@ public abstract class NetworkHandler {
 
             List<Waypoint> waypoints;
             if (handler.getPlayer().hasPermissionLevel(4)) {
-                waypoints = WpsUtils.getAccessibleWaypoints(player);
-            } else {
                 waypoints = WpsUtils.getAllWaypoints();
+            } else {
+                waypoints = WpsUtils.getAccessibleWaypoints(player);
             }
 
             List<WaypointInfo> waypointInfos = new ArrayList<>(waypoints.size());
