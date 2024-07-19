@@ -22,7 +22,7 @@ import static com.cimadev.cimpleWaypointSystem.Main.*;
 
 public class Waypoint implements Comparable<Waypoint> {
     public static final PacketCodec<RegistryByteBuf, Waypoint> PACKET_CODEC = PacketCodec.tuple(
-            WaypointKey.PACKET_CODEC, buf -> null,
+            WaypointKey.PACKET_CODEC, Waypoint::getKey,
             BlockPos.PACKET_CODEC, Waypoint::getPosition,
             RegistryKey.createPacketCodec(RegistryKeys.WORLD), Waypoint::getWorldRegKey,
             PacketCodecs.INTEGER, Waypoint::getYaw,
