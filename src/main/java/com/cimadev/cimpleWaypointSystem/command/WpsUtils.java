@@ -11,6 +11,10 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 
 public final class WpsUtils {
+    public static List<Waypoint> getAccessibleWaypoints(@Nullable ServerPlayerEntity player) {
+        return getAccessibleWaypoints(player, null, false, false);
+    }
+
     public static List<Waypoint> getAccessibleWaypoints(
             @Nullable ServerPlayerEntity caller,
             @Nullable OfflinePlayer wantedOwner,
