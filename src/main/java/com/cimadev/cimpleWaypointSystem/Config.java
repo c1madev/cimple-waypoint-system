@@ -52,12 +52,23 @@ public class Config {
     }
 
     public static Config build() {
-        return ConfigBuilder.builder(Config::new)
+        Config config =  ConfigBuilder.builder(Config::new)
                 .addValueSerializer(AccessLevel.class, AccessLevelSerializer.INSTANCE)
                 .addValueSerializer(AccessLevelList.class, AccessLevelListSerializer.INSTANCE)
                 .path(getConfigFile())
                 .saveSyncAfterBuild(true)
                 .build();
+        for (AccessLevel e : config.disabledAccessLevels.get()) {
+            if (config.defaultAccess.get() == e) {
+                LOGGER.warn(
+                        "Default access level is in the disabled list. "
+                        + "Players will still be able to use the default access level even though it's disabled"
+                );
+                break;
+            }
+        }
+
+        return config;
     }
 
     private static Path getConfigFile() {
