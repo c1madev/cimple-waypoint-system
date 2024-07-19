@@ -22,6 +22,7 @@ public class AccessLevelListSerializer implements ValueSerializer<AccessLevelLis
         String[] arr = str.split(DELIMITER);
         ArrayList<AccessLevel> list = new ArrayList<>(arr.length);
         for (String val : arr) {
+            if (val.isEmpty()) continue;
             list.add(SERIALIZER.deserialize(val));
         }
         return new AccessLevelList(list);
