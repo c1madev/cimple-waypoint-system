@@ -14,7 +14,8 @@ public class WaypointKey {
     public static final PacketCodec<RegistryByteBuf, WaypointKey> PACKET_CODEC = PacketCodec.tuple(
             new NullableCodec<>(Uuids.PACKET_CODEC), WaypointKey::getOwner,
             PacketCodecs.STRING, WaypointKey::getName,
-            WaypointKey::new
+            new NullableCodec<>(PacketCodecs.STRING), WaypointKey::getOwnerName,
+            (uuid, name, ownerName) -> new WaypointKey(uuid, name)
     );
 
     @Nullable
@@ -23,6 +24,10 @@ public class WaypointKey {
 
     public @Nullable UUID getOwner() {
         return owner;
+    }
+
+    private @Nullable String getOwnerName() {
+        return owner == null ? null : OfflinePlayer.fromUuid(owner).getName();
     }
 
     public String getName() {
