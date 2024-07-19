@@ -6,10 +6,7 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
-import net.minecraft.text.HoverEvent;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Style;
-import net.minecraft.text.Text;
+import net.minecraft.text.*;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -105,9 +102,19 @@ public class Waypoint implements Comparable<Waypoint> {
 
     public Text getNameFormatted() {
         HoverEvent waypointTooltip = new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("x: " + position.getX() + ", y: " + position.getY() + ", z: " + position.getZ()));
+        ClickEvent waypointCommand = new ClickEvent(
+                ClickEvent.Action.SUGGEST_COMMAND,
+                "/wps go "
+                        + this.getName()
+                        + " "
+                        + (this.getOwnerPlayer() == null ? "open" : this.getOwnerPlayer().getName())
+                );
         MutableText waypointName = Text.literal(key.getName()).formatted(LINK_COLOR, Formatting.UNDERLINE);
         Style waypointStyle = waypointName.getStyle();
-        waypointName.setStyle(waypointStyle.withHoverEvent(waypointTooltip));
+        waypointName.setStyle(waypointStyle
+                        .withHoverEvent(waypointTooltip)
+                        .withClickEvent(waypointCommand)
+        );
         return waypointName;
     }
 

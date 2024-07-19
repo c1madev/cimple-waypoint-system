@@ -7,10 +7,13 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.util.Formatting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Main implements ModInitializer {
 
     public static final String MOD_ID = "cimple-waypoint-system";
+    public static final Logger LOGGER = LoggerFactory.getLogger("CWPS");
 
 
     public static final Formatting DEFAULT_COLOR = Formatting.GOLD;
@@ -23,8 +26,10 @@ public class Main implements ModInitializer {
     public static final Formatting OPEN_COLOR = PUBLIC_COLOR;
     public static final Formatting PLAYER_COLOR = Formatting.GREEN;
     public static ServerState serverState;
+    public static Config config;
     @Override
     public void onInitialize() {
+        config = Config.build();
         ModRegistries.registerAll();
         NetworkHandler.register();
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {

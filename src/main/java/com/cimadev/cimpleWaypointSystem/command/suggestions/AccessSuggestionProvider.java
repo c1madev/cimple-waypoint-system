@@ -7,12 +7,15 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.server.command.ServerCommandSource;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
+import static com.cimadev.cimpleWaypointSystem.Main.config;
+
 public class AccessSuggestionProvider implements SuggestionProvider<ServerCommandSource> {
 
-    private static AccessLevel[] accessLevels = AccessLevel.values();
+    private static final AccessLevel[] ALL_ACCESS_LEVELS = AccessLevel.values();
     private final AccessLevel[] includeAccessLevels;
     private final Predicate<ServerCommandSource> override;
 
@@ -21,21 +24,39 @@ public class AccessSuggestionProvider implements SuggestionProvider<ServerComman
         this(source -> (false), exclude);
     }
 
+    /**
+     *
+     * @param override pass a function which overrides the
+     *                 exclusion of access levels in getSuggestions.
+     *                 Intended for permission levels.
+     * @param exclude any number of access levels which to
+     *                exclude from suggestion if not overridden
+     */
     public AccessSuggestionProvider(final Predicate<ServerCommandSource> override, AccessLevel... exclude) {
-        /*
-        override: pass a function which overrides the exclusion of access levels in getSuggestions. Intended for permission levels.
-        exclude: any number of access levels which to exclude from suggestion if not overridden
-         */
         this.override = override;
         int includedCounter = 0;
-        includeAccessLevels = new AccessLevel[ accessLevels.length - exclude.length ];
-        for( int i = 0, j = 0 ; i < accessLevels.length ; i++ ) {
+        final List<AccessLevel> CONFIG_EXCLUDED = config.disabledAccessLevels.get();
+        includeAccessLevels = new AccessLevel[
+                ALL_ACCESS_LEVELS.length
+                        - exclude.length
+                        - CONFIG_EXCLUDED.size()
+                ];
+        for (AccessLevel access : ALL_ACCESS_LEVELS) {
             boolean include = true;
-            for ( AccessLevel e : exclude ) {
-                if (accessLevels[i] == e) include = false;
+            for (AccessLevel e : CONFIG_EXCLUDED) {
+                if (access == e) {
+                    include = false;
+                    break;
+                }
             }
-            if (include == true) {
-                includeAccessLevels[includedCounter] = accessLevels[i];
+            for (AccessLevel e : exclude) {
+                if (access == e) {
+                    include = false;
+                    break;
+                }
+            }
+            if (include) {
+                includeAccessLevels[includedCounter] = access;
                 includedCounter++;
             }
         }
@@ -43,8 +64,8 @@ public class AccessSuggestionProvider implements SuggestionProvider<ServerComman
 
     @Override
     public CompletableFuture<Suggestions> getSuggestions(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) {
-        AccessLevel[] list = (override.test( context.getSource()) ? accessLevels : includeAccessLevels );
-        for (AccessLevel access : list ) {
+        AccessLevel[] appliedLevels = ( override.test(context.getSource()) ? ALL_ACCESS_LEVELS : includeAccessLevels );
+        for (AccessLevel access : appliedLevels) {
             builder.suggest(access.getName());
         }
         return builder.buildFuture();

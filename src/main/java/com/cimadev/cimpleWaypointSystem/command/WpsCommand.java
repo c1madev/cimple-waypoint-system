@@ -8,6 +8,7 @@ import com.cimadev.cimpleWaypointSystem.command.suggestions.WaypointSuggestionPr
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
@@ -79,8 +80,7 @@ public class WpsCommand {
     private static final AccessSuggestionProvider accessSuggestionsNoOpen = new AccessSuggestionProvider(AccessLevel.OPEN);
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess commandRegistryAccess, CommandManager.RegistrationEnvironment registrationEnvironment) {
-
-        dispatcher.register(CommandManager.literal(COMMAND_NAME)
+        LiteralArgumentBuilder<ServerCommandSource> command = CommandManager.literal(COMMAND_NAME)
                 .then(CommandManager.argument("name", word())
                         .executes(WpsCommand::wpsGoDerived)
                         .then(CommandManager.argument("owner", word())
@@ -89,7 +89,7 @@ public class WpsCommand {
                         )
                         .then(CommandManager.literal("open")
                                 .executes(WpsCommand::wpsGoOpen)
-                ))
+                        ))
                 .then(CommandManager.literal("help")
                         .executes(WpsCommand::wpsHelp)
                 )
@@ -103,7 +103,7 @@ public class WpsCommand {
                                 )
                                 .then(CommandManager.literal("open")
                                         .executes(WpsCommand::wpsGoOpen)
-                )))
+                                )))
                 .then(CommandManager.literal("here")
                         .then(CommandManager.argument("name", word())
                                 .executes(WpsCommand::wpsHereMine)
@@ -129,12 +129,12 @@ public class WpsCommand {
                                                         .then(CommandManager.argument("dimension", DimensionArgumentType.dimension())
                                                                 .executes(WpsCommand::wpsSet)
                                                                 .then(CommandManager.argument(
-                                                                        "yaw",
-                                                                        DoubleArgumentType.doubleArg(-90, 90)
+                                                                                        "yaw",
+                                                                                        DoubleArgumentType.doubleArg(-90, 90)
+                                                                                )
+                                                                                .executes(WpsCommand::wpsSet)
                                                                 )
-                                                                        .executes(WpsCommand::wpsSet)
-                                                                )
-                                ))))
+                                                        ))))
                                 .then(CommandManager.literal("open")
                                         .executes(WpsCommand::wpsSetOpen)
                                         .then(CommandManager.argument("pos", BlockPosArgumentType.blockPos())
@@ -143,7 +143,7 @@ public class WpsCommand {
                                                         .executes(WpsCommand::wpsSet)
                                                         .then(CommandManager.argument("yaw", DoubleArgumentType.doubleArg(-90, 90))
                                                                 .executes(WpsCommand::wpsSetOpen)
-                                ))))
+                                                        ))))
                         ))
                 .then(CommandManager.literal("list")
                         .executes(WpsCommand::wpsListAccessible)
@@ -180,25 +180,32 @@ public class WpsCommand {
                                 .then(CommandManager.argument("access", word())
                                         .suggests(accessSuggestionsNoOpen)
                                         .executes(WpsCommand::wpsSetAccess))))
-                .then(CommandManager.literal("friend")
-                        .then(CommandManager.literal("add")
-                                .then(CommandManager.argument("player", word())
-                                        .suggests(new OfflinePlayerSuggestionProvider())
-                                        .executes(WpsCommand::wpsAddFriend)))
-                        .then(CommandManager.literal("remove")
-                                .then(CommandManager.argument("player", word())
-                                        .suggests(new OfflinePlayerSuggestionProvider())
-                                        .executes(WpsCommand::wpsRemoveFriend))))
                 .then(CommandManager.literal("sethome")
                         .executes(WpsCommand::wpsSetHome)
                         .then(CommandManager.argument("name", word())
                                 .suggests(new WaypointSuggestionProvider())
                                 .then(CommandManager.argument("owner", word())
-                                .suggests(new OfflinePlayerSuggestionProvider())
+                                        .suggests(new OfflinePlayerSuggestionProvider())
                                         .executes(WpsCommand::wpsSetHome))
                                 .then(CommandManager.literal("open")
                                         .executes(WpsCommand::wpsSetHome)))
-                        ));
+                );
+
+        if (config.friendshipEnabled.get())
+            command = command.then(
+                    CommandManager.literal("friend")
+                    .then(CommandManager.literal("add")
+                            .then(CommandManager.argument("player", word())
+                                    .suggests(new OfflinePlayerSuggestionProvider())
+                                    .executes(WpsCommand::wpsAddFriend)))
+                    .then(CommandManager.literal("remove")
+                            .then(CommandManager.argument("player", word())
+                                    .suggests(new OfflinePlayerSuggestionProvider())
+                                    .executes(WpsCommand::wpsRemoveFriend)
+                    ))
+            );
+
+        dispatcher.register(command);
 
         // administrator wps options
         dispatcher.register(CommandManager.literal(COMMAND_NAME)
@@ -240,13 +247,17 @@ public class WpsCommand {
 
     private static int wpsGoDerived(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         String waypointName = StringArgumentType.getString(context, "name");
-        if (Main.serverState.waypointExists(new WaypointKey(null, waypointName)))
-            return executeWpsGo(context, null);
+        boolean preferOpen = config.preferOpenForDerived.get();
+        final CommandFunction forOpen = () -> executeWpsGo(context, null);
+        final CommandFunction forSelf = () -> executeWpsGo(
+                context,
+                OfflinePlayer.fromUuid(context.getSource().getPlayerOrThrow().getUuid())
+        );
+        UUID owner = preferOpen ? null : context.getSource().getPlayerOrThrow().getUuid();
+        if (Main.serverState.waypointExists(new WaypointKey(owner, waypointName)))
+            return preferOpen ? forOpen.run() : forSelf.run();
         else
-            return executeWpsGo(
-                    context,
-                    OfflinePlayer.fromUuid(context.getSource().getPlayerOrThrow().getUuid())
-            );
+            return preferOpen ? forSelf.run() : forOpen.run();
     }
     private static int wpsGoOwned(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         return executeWpsGo(context, OfflinePlayer.fromContext(context, "owner"));
@@ -319,7 +330,7 @@ public class WpsCommand {
         ServerWorld world = player.getServerWorld();
 
         String name = StringArgumentType.getString(context, "name");
-        AccessLevel access = AccessLevel.PRIVATE;
+        AccessLevel access = config.defaultAccess.get();
         if ( context.getNodes().size() == 4 ) {
             access = AccessLevel.fromContext(context, "access");
         }

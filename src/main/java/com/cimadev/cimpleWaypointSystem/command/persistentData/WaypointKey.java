@@ -48,13 +48,16 @@ public class WaypointKey {
     public NbtCompound toNbt() {
         NbtCompound nbt = new NbtCompound();
         nbt.putString("name", this.name);
-        nbt.putUuid("owner", this.owner);
+        if (this.owner != null) nbt.putUuid("owner", this.owner);
 
         return nbt;
     }
 
     public static WaypointKey fromNbt( NbtCompound nbt ) {
-        return new WaypointKey(nbt.getUuid("owner"), nbt.getString("name"));
+        return new WaypointKey(
+                nbt.contains("owner") ? nbt.getUuid("owner") : null,
+                nbt.getString("name")
+        );
     }
 
     @Override

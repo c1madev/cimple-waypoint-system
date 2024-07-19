@@ -45,11 +45,21 @@ public enum AccessLevel {
             throws CommandSyntaxException {
 
         String access = StringArgumentType.getString( context , id );
+        AccessLevel result;
         try {
-            return fromString(access);
+            result = fromString(access);
         } catch (IllegalArgumentException e) {
             throw new SimpleCommandExceptionType(() -> "Invalid access type " + access + ".").create();
         }
+        for (AccessLevel globalExclusion : config.disabledAccessLevels.get()) {
+            if (result == globalExclusion)
+                throw new SimpleCommandExceptionType(() ->
+                        "Access type "
+                        + access
+                        + " has been disabled by the admins."
+                ).create();
+        }
+        return result;
     }
 
     public String getName() {
