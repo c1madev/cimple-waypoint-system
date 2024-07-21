@@ -158,8 +158,8 @@ public class ServerState extends PersistentState {
         NbtList waypointList = tag.getList("waypoints", NbtElement.COMPOUND_TYPE);
         waypointList.forEach( nbt -> serverState.setWaypoint( Waypoint.fromNbt((NbtCompound) nbt) ) );
 
-        NbtCompound playerHomesCompound = tag.getCompound("playerHomes");
-        playerHomesCompound.getKeys().forEach(key -> serverState.setPlayerHome( PlayerHome.fromNbt( playerHomesCompound.getCompound(key) ) ) );
+        NbtList playerHomesCompound = tag.getList("playerHomes", NbtElement.COMPOUND_TYPE);
+        playerHomesCompound.forEach(compound -> serverState.setPlayerHome( PlayerHome.fromNbt((NbtCompound) compound) ) );
 
         return serverState;
     }
