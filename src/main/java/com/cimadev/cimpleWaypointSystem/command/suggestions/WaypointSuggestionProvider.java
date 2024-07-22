@@ -4,6 +4,7 @@ import com.cimadev.cimpleWaypointSystem.command.persistentData.AccessLevel;
 import com.cimadev.cimpleWaypointSystem.command.persistentData.OfflinePlayer;
 import com.cimadev.cimpleWaypointSystem.command.persistentData.Waypoint;
 
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
@@ -20,11 +21,12 @@ import java.util.concurrent.CompletableFuture;
 public class WaypointSuggestionProvider implements SuggestionProvider<ServerCommandSource> {
     private static final Logger LOGGER = LoggerFactory.getLogger(WaypointSuggestionProvider.class);
 
-    private final boolean withOwner;
+    private final boolean withOwner, removeImpossible;
 
-    public WaypointSuggestionProvider() { this(false); }
-    public WaypointSuggestionProvider(boolean withOwner) {
+    public WaypointSuggestionProvider() { this(false, false); }
+    public WaypointSuggestionProvider(boolean withOwner, boolean removeImpossible) {
         this.withOwner = withOwner;
+        this.removeImpossible = removeImpossible;
     }
 
     @Override
@@ -45,8 +47,17 @@ public class WaypointSuggestionProvider implements SuggestionProvider<ServerComm
                 Most involved option but possibly best for user experience.
          */
         ServerPlayerEntity player = context.getSource().getPlayer();
+        String currentName;
+        // TODO: This is not the cleanest as it forces an argument "name" to exist for this to work
+        try {
+            currentName = StringArgumentType.getString(context, "name");
+        } catch (IllegalArgumentException e) {
+            currentName = "";
+        }
         List<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player,null, false, false);
         for (Waypoint waypoint : waypoints) {
+            if (removeImpossible && !waypoint.getName().startsWith(currentName))
+                continue;
             String suggestion;
             if (!withOwner)
                 suggestion = waypoint.getName();

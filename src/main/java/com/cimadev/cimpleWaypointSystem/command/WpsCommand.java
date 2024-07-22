@@ -95,7 +95,7 @@ public class WpsCommand {
                 )
                 .then(CommandManager.literal("go")
                         .then(CommandManager.argument("name", word())
-                                .suggests(new WaypointSuggestionProvider(true))
+                                .suggests(new WaypointSuggestionProvider(true, true))
                                 .executes(WpsCommand::wpsGoDerived)
                                 .then(CommandManager.argument("owner", word())
                                         .suggests(new OfflinePlayerSuggestionProvider())
