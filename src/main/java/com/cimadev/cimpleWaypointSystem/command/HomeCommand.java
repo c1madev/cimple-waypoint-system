@@ -109,7 +109,7 @@ public class HomeCommand {
 
         player.teleport(world, homePos.getX(), homePos.getY(), homePos.getZ() , yaw, 0);
 
-        context.getSource().sendFeedback(messageText, true);
+        context.getSource().sendFeedback(messageText, false);
 
         return 1;
     }
