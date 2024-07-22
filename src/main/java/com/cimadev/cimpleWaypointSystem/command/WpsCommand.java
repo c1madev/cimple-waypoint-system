@@ -354,7 +354,7 @@ public class WpsCommand {
                     .append(" already exists!").formatted(DEFAULT_COLOR);
         }
 
-        context.getSource().sendFeedback(messageText, true);
+        context.getSource().sendFeedback(messageText, false);
         Main.serverState.markDirty();
         return 1;
     }
@@ -717,7 +717,7 @@ public class WpsCommand {
             Main.serverState.markDirty();
         }
 
-        context.getSource().sendFeedback(messageText, true);
+        context.getSource().sendFeedback(messageText, false);
         return 1;
     }
 

@@ -127,7 +127,7 @@ public class HomeCommand {
                 .append(playerHome.positionHover("home"))
                 .append(" has been set.")
                 .formatted(DEFAULT_COLOR);
-        context.getSource().sendFeedback(messageText, true);
+        context.getSource().sendFeedback(messageText, false);
         Main.serverState.markDirty();
         return 1;
     }
@@ -165,7 +165,7 @@ public class HomeCommand {
                     .append(".")
                     .formatted(DEFAULT_COLOR);
         }
-        context.getSource().sendFeedback(messageText, true);
+        context.getSource().sendFeedback(messageText, false);
         return 1;
     }
 
@@ -181,7 +181,7 @@ public class HomeCommand {
                 .append(playerHome.positionHover("home"))
                 .append(" has been moved.")
                 .formatted(DEFAULT_COLOR);
-        context.getSource().sendFeedback(messageText, true);
+        context.getSource().sendFeedback(messageText, false);
         Main.serverState.markDirty();
         return 1;
     }
@@ -197,7 +197,7 @@ public class HomeCommand {
                 .append(playerHome.positionHover("home"))
                 .append(" has been removed.")
                 .formatted(DEFAULT_COLOR);
-        context.getSource().sendFeedback(messageText, true);
+        context.getSource().sendFeedback(messageText, false);
         Main.serverState.markDirty();
         return 1;
     }
