@@ -78,6 +78,16 @@ public class WpsCommand {
 
     private static final AccessSuggestionProvider accessSuggestionsAdminsOpen = new AccessSuggestionProvider(source -> source.hasPermissionLevel(3), AccessLevel.OPEN);
     private static final AccessSuggestionProvider accessSuggestionsNoOpen = new AccessSuggestionProvider(AccessLevel.OPEN);
+    private static final WaypointSuggestionProvider waypointSuggestionsOnlySelf = new WaypointSuggestionProvider(
+            false, false,
+            (source, waypoint) ->
+                    !source.isExecutedByPlayer()
+                            || Objects.requireNonNull(source.getPlayer())
+                            .getUuid()
+                            .equals(waypoint.getOwner())
+    );
+    private static final WaypointSuggestionProvider waypointsFilteredWithOwner =
+            new WaypointSuggestionProvider(true, true);
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess commandRegistryAccess, CommandManager.RegistrationEnvironment registrationEnvironment) {
         LiteralArgumentBuilder<ServerCommandSource> command = CommandManager.literal(COMMAND_NAME)
@@ -95,7 +105,7 @@ public class WpsCommand {
                 )
                 .then(CommandManager.literal("go")
                         .then(CommandManager.argument("name", word())
-                                .suggests(new WaypointSuggestionProvider(true, true))
+                                .suggests(waypointsFilteredWithOwner)
                                 .executes(WpsCommand::wpsGoDerived)
                                 .then(CommandManager.argument("owner", word())
                                         .suggests(new OfflinePlayerSuggestionProvider())
@@ -159,18 +169,20 @@ public class WpsCommand {
                                 .executes(WpsCommand::wpsListOpen)))
                 .then(CommandManager.literal("remove")
                         .then(CommandManager.argument("name", word())
-                                .suggests(new WaypointSuggestionProvider())
+                                .suggests(waypointSuggestionsOnlySelf)
                                 .executes(WpsCommand::wpsRemoveMine)
-                                .requires(source -> source.hasPermissionLevel(3))
                                 .then(CommandManager.argument("owner", word())
+                                        .requires(source -> source.hasPermissionLevel(3))
                                         .executes(WpsCommand::wpsRemoveOwned))
                                 .then(CommandManager.literal("open")
+                                        .requires(source -> source.hasPermissionLevel(3))
                                         .executes(WpsCommand::wpsRemoveOpen))))
                 .then(CommandManager.literal("rename")
                         .then(CommandManager.argument("oldName", word())
-                                .suggests(new WaypointSuggestionProvider())
+                                .suggests(waypointSuggestionsOnlySelf)
                                 .then(CommandManager.argument("newName", word())
-                                        .executes(WpsCommand::wpsRenameMine).requires(source -> source.hasPermissionLevel(3))
+                                        .executes(WpsCommand::wpsRenameMine)
+                                        .requires(source -> source.hasPermissionLevel(3))
                                         .then(CommandManager.argument("owner", word())
                                                 .executes(WpsCommand::wpsRenameOwned))
                                         .then(CommandManager.literal("open")
@@ -183,7 +195,7 @@ public class WpsCommand {
                 .then(CommandManager.literal("sethome")
                         .executes(WpsCommand::wpsSetHome)
                         .then(CommandManager.argument("name", word())
-                                .suggests(new WaypointSuggestionProvider())
+                                .suggests(waypointsFilteredWithOwner)
                                 .then(CommandManager.argument("owner", word())
                                         .suggests(new OfflinePlayerSuggestionProvider())
                                         .executes(WpsCommand::wpsSetHome))
