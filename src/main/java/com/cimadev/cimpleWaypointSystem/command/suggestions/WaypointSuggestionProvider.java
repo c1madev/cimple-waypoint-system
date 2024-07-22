@@ -12,21 +12,32 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiPredicate;
 
 public class WaypointSuggestionProvider implements SuggestionProvider<ServerCommandSource> {
     private static final Logger LOGGER = LoggerFactory.getLogger(WaypointSuggestionProvider.class);
 
     private final boolean withOwner, removeImpossible;
+    private final @Nullable BiPredicate<ServerCommandSource, Waypoint> predicate;
 
     public WaypointSuggestionProvider() { this(false, false); }
     public WaypointSuggestionProvider(boolean withOwner, boolean removeImpossible) {
+        this(withOwner, removeImpossible, null);
+    }
+    public WaypointSuggestionProvider(
+            boolean withOwner,
+            boolean removeImpossible,
+            @Nullable BiPredicate<ServerCommandSource, Waypoint> predicate
+    ) {
         this.withOwner = withOwner;
         this.removeImpossible = removeImpossible;
+        this.predicate = predicate;
     }
 
     @Override
@@ -57,6 +68,8 @@ public class WaypointSuggestionProvider implements SuggestionProvider<ServerComm
         List<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player,null, false, false);
         for (Waypoint waypoint : waypoints) {
             if (removeImpossible && !waypoint.getName().startsWith(currentName))
+                continue;
+            if (predicate != null && !predicate.test(context.getSource(), waypoint))
                 continue;
             String suggestion;
             if (!withOwner)
