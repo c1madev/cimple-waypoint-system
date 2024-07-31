@@ -6,8 +6,10 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.util.Uuids;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class WaypointKey {
@@ -71,10 +73,9 @@ public class WaypointKey {
 
     @Override
     public boolean equals(Object obj) {
-        if (! (obj instanceof WaypointKey) ) return false;
-        WaypointKey that = (WaypointKey) obj;
-        if ( this.name.toLowerCase().equals(that.getName().toLowerCase()) && this.owner == null && that.getOwner() == null ) return true;
-        if (this.name.toLowerCase().equals(that.getName().toLowerCase()) && this.owner.equals(that.getOwner())) return true;
-        return false;
+        if (! (obj instanceof WaypointKey that) ) return false;
+
+        final boolean sameName = this.name.equalsIgnoreCase(that.name);
+        return sameName && Objects.equals(this.owner, that.owner);
     }
 }
