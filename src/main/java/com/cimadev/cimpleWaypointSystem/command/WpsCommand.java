@@ -78,15 +78,17 @@ public class WpsCommand {
             ""
     };
 
+    // Yeah, yeah, functional interfaces in constants
+    private static final WaypointSuggestionProvider.WaypointValidator ONLY_SELF_PREDICATE = (source, waypoint) ->
+            !source.isExecutedByPlayer()
+                    || Objects.requireNonNull(source.getPlayer())
+                    .getUuid()
+                    .equals(waypoint.getOwner());
     private static final AccessSuggestionProvider accessSuggestionsAdminsOpen = new AccessSuggestionProvider(source -> source.hasPermissionLevel(3), AccessLevel.OPEN);
     private static final AccessSuggestionProvider accessSuggestionsNoOpen = new AccessSuggestionProvider(AccessLevel.OPEN);
     private static final WaypointSuggestionProvider waypointSuggestionsOnlySelf = new WaypointSuggestionProvider(
-            false, false,
-            (source, waypoint) ->
-                    !source.isExecutedByPlayer()
-                            || Objects.requireNonNull(source.getPlayer())
-                            .getUuid()
-                            .equals(waypoint.getOwner())
+            false, true,
+            ONLY_SELF_PREDICATE
     );
     private static final WaypointSuggestionProvider waypointsFilteredWithOwner =
             new WaypointSuggestionProvider(true, true);
@@ -186,7 +188,12 @@ public class WpsCommand {
                 )))
                 .then(CommandManager.literal("rename")
                         .then(CommandManager.argument("oldName", string())
-                                .suggests(waypointSuggestionsOnlySelf)
+                                .suggests(new WaypointSuggestionProvider(
+                                        false,
+                                        true,
+                                        ONLY_SELF_PREDICATE,
+                                        "oldName"
+                                ))
                                 .then(CommandManager.argument("newName", string())
                                         .executes(WpsCommand::wpsRenameMine)
                                         .then(CommandManager.argument("owner", word())
