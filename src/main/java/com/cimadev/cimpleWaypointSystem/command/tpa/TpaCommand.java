@@ -49,7 +49,8 @@ public class TpaCommand {
         }
         TeleportRequestManager.getInstance().addRequest(new TeleportRequest(
                 origin,
-                target
+                target,
+                false
         ));
         target.sendMessage(
                 Text.literal("")
@@ -92,7 +93,7 @@ public class TpaCommand {
                                 Long.toString(TeleportRequestManager.getInstance().getRequestTTL()/20)
                         )
                                 .append(" seconds")
-                                .formatted(Formatting.AQUA)
+                                .formatted(Colors.TIME)
                 )
                 .formatted(Colors.DEFAULT)
         );

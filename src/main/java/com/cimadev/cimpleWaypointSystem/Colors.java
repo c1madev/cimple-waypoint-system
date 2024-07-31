@@ -11,6 +11,7 @@ public abstract class Colors {
             PRIVATE = Formatting.YELLOW,
             PUBLIC = Formatting.DARK_GREEN,
             OPEN = PUBLIC,
-            PLAYER = Formatting.GREEN
+            PLAYER = Formatting.GREEN,
+            TIME = Formatting.AQUA
                     ;
 }
