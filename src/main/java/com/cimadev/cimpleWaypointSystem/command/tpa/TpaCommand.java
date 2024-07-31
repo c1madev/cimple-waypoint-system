@@ -1,5 +1,6 @@
 package com.cimadev.cimpleWaypointSystem.command.tpa;
 
+import com.cimadev.cimpleWaypointSystem.Colors;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -14,8 +15,6 @@ import net.minecraft.text.HoverEvent;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-
-import static com.cimadev.cimpleWaypointSystem.Main.*;
 
 public class TpaCommand {
     private static final String COMMAND_NAME = "tpa";
@@ -40,7 +39,7 @@ public class TpaCommand {
 
         if (TeleportRequestManager.getInstance().hasRequest(target)) {
             origin.sendMessage(
-                    target.getName().copy().formatted(PLAYER_COLOR)
+                    target.getName().copy().formatted(Colors.PLAYER)
                     .append(
                             Text.literal(" already has a teleport request waiting. Try again later")
                             .formatted(Formatting.RED)
@@ -54,7 +53,7 @@ public class TpaCommand {
         ));
         target.sendMessage(
                 Text.literal("")
-                .append(origin.getName().copy().formatted(PLAYER_COLOR))
+                .append(origin.getName().copy().formatted(Colors.PLAYER))
                 .append(" has requested to teleport to you. Type ")
                 .append(
                         Text.literal("/tpaccept")
@@ -95,13 +94,13 @@ public class TpaCommand {
                                 .append(" seconds")
                                 .formatted(Formatting.AQUA)
                 )
-                .formatted(DEFAULT_COLOR)
+                .formatted(Colors.DEFAULT)
         );
         origin.sendMessage(
                 Text.literal("")
-                .append(target.getName().copy().formatted(PLAYER_COLOR))
+                .append(target.getName().copy().formatted(Colors.PLAYER))
                 .append(" has received your teleport request.")
-                .formatted(DEFAULT_COLOR)
+                .formatted(Colors.DEFAULT)
         );
 
         return 1;

@@ -1,5 +1,6 @@
 package com.cimadev.cimpleWaypointSystem.command;
 
+import com.cimadev.cimpleWaypointSystem.Colors;
 import com.cimadev.cimpleWaypointSystem.Main;
 import com.cimadev.cimpleWaypointSystem.command.persistentData.OfflinePlayer;
 import com.cimadev.cimpleWaypointSystem.command.persistentData.PlayerHome;
@@ -21,7 +22,6 @@ import net.minecraft.util.math.Vec3d;
 import java.util.*;
 import java.util.function.Supplier;
 
-import static com.cimadev.cimpleWaypointSystem.Main.*;
 import static com.mojang.brigadier.arguments.StringArgumentType.word;
 
 public class HomeCommand {
@@ -87,14 +87,14 @@ public class HomeCommand {
                 homePos = world.getSpawnPos();
             }
 
-            MutableText spawnpoint = Text.literal("spawnpoint").formatted(LINK_COLOR, Formatting.UNDERLINE);
+            MutableText spawnpoint = Text.literal("spawnpoint").formatted(Colors.LINK, Formatting.UNDERLINE);
             Style style = spawnpoint.getStyle();
             HoverEvent spawncoords = new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("x: " + homePos.getX() + ", y: " + homePos.getY() + ", z: " + homePos.getZ()));
             spawnpoint.setStyle(style.withHoverEvent(spawncoords));
             messageText = () -> Text.literal("Teleported to your ")
                     .append(spawnpoint)
                     .append(".")
-                    .formatted(DEFAULT_COLOR);
+                    .formatted(Colors.DEFAULT);
         } else {
             // Set target location to home
             homePos = playerHome.getPosition();
@@ -104,7 +104,7 @@ public class HomeCommand {
             messageText = () -> Text.literal("Teleported to your ")
                     .append(playerHome.positionHover("home"))
                     .append(".")
-                    .formatted(DEFAULT_COLOR);
+                    .formatted(Colors.DEFAULT);
         }
 
         player.teleport(world, homePos.getX(), homePos.getY(), homePos.getZ() , yaw, 0);
@@ -126,7 +126,7 @@ public class HomeCommand {
         messageText = () -> Text.literal("Your ")
                 .append(playerHome.positionHover("home"))
                 .append(" has been set.")
-                .formatted(DEFAULT_COLOR);
+                .formatted(Colors.DEFAULT);
         context.getSource().sendFeedback(messageText, false);
         Main.serverState.markDirty();
         return 1;
@@ -145,7 +145,7 @@ public class HomeCommand {
             } else {
                 worldName = "[world could not be identified]";
             }
-            MutableText here = Text.literal(pHposition.getX() + "x " + pHposition.getY() + "y " + pHposition.getZ() + "z").formatted(LINK_COLOR, Formatting.UNDERLINE);
+            MutableText here = Text.literal(pHposition.getX() + "x " + pHposition.getY() + "y " + pHposition.getZ() + "z").formatted(Colors.LINK, Formatting.UNDERLINE);
             Style style = here.getStyle();
             HoverEvent goHomeTooltip = new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Click here to go home!"));
             ClickEvent goHome = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/home");
@@ -153,9 +153,9 @@ public class HomeCommand {
             messageText = () -> Text.literal("At ")
                     .append(here)
                     .append(" in the " + worldName + "!")
-                    .formatted(DEFAULT_COLOR);
+                    .formatted(Colors.DEFAULT);
         } else {
-            MutableText respawnPoint = Text.literal("respawn point").formatted(LINK_COLOR, Formatting.UNDERLINE);
+            MutableText respawnPoint = Text.literal("respawn point").formatted(Colors.LINK, Formatting.UNDERLINE);
             Style style = respawnPoint.getStyle();
             HoverEvent goHomeTooltip = new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Click here to go home!"));
             ClickEvent goHome = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/home");
@@ -163,7 +163,7 @@ public class HomeCommand {
             messageText = () -> Text.literal("You have not set a home. You will be teleported to your ")
                     .append(respawnPoint)
                     .append(".")
-                    .formatted(DEFAULT_COLOR);
+                    .formatted(Colors.DEFAULT);
         }
         context.getSource().sendFeedback(messageText, false);
         return 1;
@@ -180,7 +180,7 @@ public class HomeCommand {
         messageText = () -> Text.literal(player.getName()+ "'s ")
                 .append(playerHome.positionHover("home"))
                 .append(" has been moved.")
-                .formatted(DEFAULT_COLOR);
+                .formatted(Colors.DEFAULT);
         context.getSource().sendFeedback(messageText, false);
         Main.serverState.markDirty();
         return 1;
@@ -196,7 +196,7 @@ public class HomeCommand {
         messageText = () -> Text.literal("Your ")
                 .append(playerHome.positionHover("home"))
                 .append(" has been removed.")
-                .formatted(DEFAULT_COLOR);
+                .formatted(Colors.DEFAULT);
         context.getSource().sendFeedback(messageText, false);
         Main.serverState.markDirty();
         return 1;
@@ -211,7 +211,7 @@ public class HomeCommand {
         if ( ph != null ) {
             BlockPos homePos = ph.getPosition();
 
-            MutableText position = Text.literal(homePos.getX() + "x " + homePos.getY() + "y " + homePos.getZ() + "z").formatted(LINK_COLOR, Formatting.UNDERLINE);
+            MutableText position = Text.literal(homePos.getX() + "x " + homePos.getY() + "y " + homePos.getZ() + "z").formatted(Colors.LINK, Formatting.UNDERLINE);
             Style style = position.getStyle();
             HoverEvent goHomeTooltip = new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Click here to visit " + player.getName() + "'s home!"));
             ClickEvent goHome = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tp " + homePos.getX() + " " + homePos.getY() + " " + homePos.getZ());
@@ -220,7 +220,7 @@ public class HomeCommand {
             messageText = () -> Text.literal(player.getName() + "'s home is at ")
                     .append(position)
                     .append("!")
-                    .formatted(DEFAULT_COLOR);
+                    .formatted(Colors.DEFAULT);
         } else {
             messageText = () -> Text.literal(player.getName() + " has not set a home.");
         }
@@ -232,25 +232,25 @@ public class HomeCommand {
     private static int homeHelp(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         Supplier<Text> messageText;
         ServerCommandSource source = context.getSource();
-        messageText = () -> Text.literal("-=- -=- -=- /home help menu -=- -=- -=-").formatted(SECONDARY_COLOR);
+        messageText = () -> Text.literal("-=- -=- -=- /home help menu -=- -=- -=-").formatted(Colors.SECONDARY);
         source.sendFeedback(messageText, false);
 
         for( String help : DEFAULT_HELP ) {
-            messageText = () -> Text.literal(help).formatted(DEFAULT_COLOR);
+            messageText = () -> Text.literal(help).formatted(Colors.DEFAULT);
             source.sendFeedback(messageText, false);
         }
 
         if (context.getSource().hasPermissionLevel(3)) {
             for (String help : ADMIN_HELP ) {
-                messageText = () -> Text.literal(help).formatted(DEFAULT_COLOR);
+                messageText = () -> Text.literal(help).formatted(Colors.DEFAULT);
                 source.sendFeedback(messageText, false);
             }
         }
 
-        messageText = () -> Text.literal("/home help : Shows this menu.").formatted(DEFAULT_COLOR);
+        messageText = () -> Text.literal("/home help : Shows this menu.").formatted(Colors.DEFAULT);
         source.sendFeedback(messageText, false);
 
-        messageText = () -> Text.literal("-=- -=- -=- -=- -=- -=- -=- -=- -=- -=-").formatted(SECONDARY_COLOR);
+        messageText = () -> Text.literal("-=- -=- -=- -=- -=- -=- -=- -=- -=- -=-").formatted(Colors.SECONDARY);
         source.sendFeedback(messageText, false);
 
         return 1;

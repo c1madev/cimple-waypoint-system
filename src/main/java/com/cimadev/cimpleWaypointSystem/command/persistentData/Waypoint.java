@@ -1,5 +1,6 @@
 package com.cimadev.cimpleWaypointSystem.command.persistentData;
 
+import com.cimadev.cimpleWaypointSystem.Colors;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -116,7 +117,7 @@ public class Waypoint implements Comparable<Waypoint> {
                         + " "
                         + (this.getOwnerPlayer() == null ? "open" : this.getOwnerPlayer().getName())
                 );
-        MutableText waypointName = Text.literal(key.getName()).formatted(LINK_COLOR, Formatting.UNDERLINE);
+        MutableText waypointName = Text.literal(key.getName()).formatted(Colors.LINK, Formatting.UNDERLINE);
         Style waypointStyle = waypointName.getStyle();
         waypointName.setStyle(waypointStyle
                         .withHoverEvent(waypointTooltip)

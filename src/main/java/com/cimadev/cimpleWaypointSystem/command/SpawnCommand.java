@@ -1,5 +1,6 @@
 package com.cimadev.cimpleWaypointSystem.command;
 
+import com.cimadev.cimpleWaypointSystem.Colors;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -14,8 +15,6 @@ import net.minecraft.util.math.Vec3d;
 
 import java.util.Optional;
 import java.util.function.Supplier;
-
-import static com.cimadev.cimpleWaypointSystem.Main.DEFAULT_COLOR;
 
 public class SpawnCommand {
 
@@ -36,13 +35,13 @@ public class SpawnCommand {
         BlockPos spawn = overworld.getSpawnPos();
         player.teleport(overworld, spawn.getX(), spawn.getY(), spawn.getZ(), 0, 0);
         player.requestTeleport(spawn.getX(), spawn.getY(), spawn.getZ());
-        Supplier<Text> messageText = () -> Text.literal("Teleported to the spawnpoint.").formatted(DEFAULT_COLOR);
+        Supplier<Text> messageText = () -> Text.literal("Teleported to the spawnpoint.").formatted(Colors.DEFAULT);
         commandSource.sendFeedback(messageText, false);
         return 1;
     }
 
     public static int help(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        Supplier<Text> messageText = () -> Text.literal("The command /spawn takes you to the overworld's default spawn point.").formatted(DEFAULT_COLOR);
+        Supplier<Text> messageText = () -> Text.literal("The command /spawn takes you to the overworld's default spawn point.").formatted(Colors.DEFAULT);
         context.getSource().sendFeedback(messageText, false);
         return 1;
     }
