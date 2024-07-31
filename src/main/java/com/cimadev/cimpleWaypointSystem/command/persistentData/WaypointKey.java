@@ -94,7 +94,7 @@ public class WaypointKey implements Comparable<WaypointKey> {
     @Override
     public int compareTo(@NotNull WaypointKey that) {
         if (Objects.equals(this.owner, that.getOwner())) {
-            return Math.clamp(this.name.compareTo(that.name), -1, 1);
+            return Math.clamp(this.name.compareToIgnoreCase(that.name), -1, 1);
         } else {
             if (this.owner == null)
                 return -1;
