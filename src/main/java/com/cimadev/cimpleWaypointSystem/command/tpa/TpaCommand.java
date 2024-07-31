@@ -1,6 +1,5 @@
 package com.cimadev.cimpleWaypointSystem.command.tpa;
 
-import com.cimadev.cimpleWaypointSystem.Colors;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -10,8 +9,6 @@ import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 
 public class TpaCommand {
     private static final String COMMAND_NAME = "tpa";
@@ -34,17 +31,9 @@ public class TpaCommand {
         EntitySelector entity = context.getArgument("target", EntitySelector.class);
         ServerPlayerEntity target = entity.getPlayer(context.getSource());
 
-        if (TeleportRequestManager.getInstance().hasRequest(target)) {
-            origin.sendMessage(
-                    target.getName().copy().formatted(Colors.PLAYER)
-                    .append(
-                            Text.literal(" already has a teleport request waiting. Try again later")
-                            .formatted(Formatting.RED)
-                    )
-            );
-            return 0;
-        }
         final TeleportRequest request = new TeleportRequest(origin, target, false);
+        if (TpaMessages.handleDuplicateAndBusy(request))
+            return 0;
         TeleportRequestManager.getInstance().addRequest(request);
         TpaMessages.sendRequestMessages(request);
 

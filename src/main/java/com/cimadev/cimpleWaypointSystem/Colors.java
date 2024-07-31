@@ -12,6 +12,7 @@ public abstract class Colors {
             PUBLIC = Formatting.DARK_GREEN,
             OPEN = PUBLIC,
             PLAYER = Formatting.GREEN,
-            TIME = Formatting.AQUA
+            TIME = Formatting.AQUA,
+            FAILURE = Formatting.RED
                     ;
 }

@@ -1,6 +1,7 @@
 package com.cimadev.cimpleWaypointSystem.command.tpa;
 
 import com.cimadev.cimpleWaypointSystem.Colors;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.*;
 import net.minecraft.util.Formatting;
 
@@ -10,6 +11,36 @@ public class TpaMessages {
                 .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command))
                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(hover)))
         );
+    }
+
+    private static void sendDuplicateRequestError(PlayerEntity origin) {
+        origin.sendMessage(Text.literal("You already have a teleport request waiting.")
+                        .append(" Use")
+                        .append(literalCommand("/tpcancel", "Click to cancel"))
+                        .append(" to cancel it.")
+                .formatted(Colors.FAILURE)
+        );
+    }
+
+    private static void sendBusyTargetError(TeleportRequest request) {
+        request.getOrigin().sendMessage(
+                request.getTarget().getName().copy().formatted(Colors.PLAYER)
+                .append(Text.literal(" already has a teleport request waiting. Try again later")
+                        .formatted(Formatting.RED)
+                )
+        );
+    }
+
+    public static boolean handleDuplicateAndBusy(TeleportRequest request) {
+        if (TeleportRequestManager.getInstance().hasRequest(request.getTarget())) {
+            sendBusyTargetError(request);
+            return true;
+        }
+        if (TeleportRequestManager.getInstance().hasOpenRequest(request.getOrigin())) {
+            sendDuplicateRequestError(request.getOrigin());
+            return true;
+        }
+        return false;
     }
 
     private static void sendRequestText(TeleportRequest request) {

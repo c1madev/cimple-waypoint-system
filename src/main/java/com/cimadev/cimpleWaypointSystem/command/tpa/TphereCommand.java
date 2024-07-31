@@ -35,6 +35,8 @@ public class TphereCommand {
             throw SELF_TELEPORT_EXC.create();
         }
         final TeleportRequest request = new TeleportRequest(origin, target, true);
+        if (TpaMessages.handleDuplicateAndBusy(request))
+            return 0;
         TeleportRequestManager.getInstance().addRequest(request);
         TpaMessages.sendRequestMessages(request);
         context.getSource().sendFeedback(() ->
@@ -45,6 +47,6 @@ public class TphereCommand {
                 ,
                 false
         );
-        return 0;
+        return 1;
     }
 }
