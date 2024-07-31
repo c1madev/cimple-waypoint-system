@@ -101,7 +101,14 @@ public class Waypoint implements Comparable<Waypoint> {
     }
 
     public Text getNameFormatted() {
-        HoverEvent waypointTooltip = new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("x: " + position.getX() + ", y: " + position.getY() + ", z: " + position.getZ()));
+        HoverEvent waypointTooltip = new HoverEvent(
+                HoverEvent.Action.SHOW_TEXT,
+                Text.literal(
+                        position.getX()
+                                + " " + position.getY()
+                                + " " + position.getZ()
+                                + " in " + worldRegKey.getValue().toString()
+                ));
         ClickEvent waypointCommand = new ClickEvent(
                 ClickEvent.Action.SUGGEST_COMMAND,
                 "/wps go "
