@@ -110,20 +110,65 @@ public class Waypoint implements Comparable<Waypoint> {
                                 + " " + position.getZ()
                                 + " in " + worldRegKey.getValue().toString()
                 ));
-        ClickEvent waypointCommand = new ClickEvent(
-                ClickEvent.Action.SUGGEST_COMMAND,
-                "/wps go "
-                        + this.getName()
-                        + " "
-                        + (this.getOwnerPlayer() == null ? "open" : this.getOwnerPlayer().getName())
-                );
+        ClickEvent waypointCommand;
+        try {
+            waypointCommand = new ClickEvent(
+                    ClickEvent.Action.SUGGEST_COMMAND,
+                    "/wps go " + getCommandComponent()
+            );
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            waypointCommand = null;
+        }
         MutableText waypointName = Text.literal(key.getName()).formatted(Colors.LINK, Formatting.UNDERLINE);
-        Style waypointStyle = waypointName.getStyle();
-        waypointName.setStyle(waypointStyle
-                        .withHoverEvent(waypointTooltip)
-                        .withClickEvent(waypointCommand)
-        );
+        Style waypointStyle = waypointName.getStyle()
+                .withHoverEvent(waypointTooltip);
+        if (waypointCommand != null)
+            waypointStyle = waypointStyle.withClickEvent(waypointCommand);
+        waypointName.setStyle(waypointStyle);
         return waypointName;
+    }
+
+    private String wrapString(String s) {
+        boolean legalUnquoted = false; // Empty string needs to be quoted
+        for (char c : s.toCharArray()) {
+            legalUnquoted = com.mojang.brigadier.StringReader.isAllowedInUnquotedString(c);
+            if (!legalUnquoted) {
+                break;
+            }
+        }
+        if (legalUnquoted)
+            return s;
+        else
+            return "\"" + s + "\"";
+    }
+
+    public String getNameForCommand() {
+        return wrapString(getName());
+    }
+
+    /**
+     * Creates a string that would be an allowed identifier for this waypoint in a /wps command.
+     * This consists of the waypoint name (quoted if necessary) and the owner (or "open" if the waypoint is open)
+     * @return The command component for this waypoint or <code>null</code> if the waypoint is in an invalid state
+     * @throws IllegalStateException If the owner of this waypoint does not exist in the cache (which should be impossible)
+     * @throws IllegalArgumentException If the waypoint is non-open but does not have an owner (e.g. unowned secret)
+     */
+    public @Nullable String getCommandComponent() throws IllegalStateException {
+        String ownerPart;
+        if (access == AccessLevel.OPEN)
+            ownerPart = AccessLevel.OPEN.getName();
+        else {
+            if (getOwner() == null)
+                throw new IllegalArgumentException("Waypoint %s is non-open without an owner".formatted(this));
+            OfflinePlayer player = getOwnerPlayer();
+            if (player == null)
+                throw new IllegalStateException(
+                        "Waypoint#getCommandComponent Could not find an OfflinePlayer for waypoint %s"
+                                .formatted(this)
+                );
+            ownerPart = player.getName();
+        }
+        return getNameForCommand() + " " + ownerPart;
     }
 
     private Waypoint(WaypointKey key, BlockPos pos, RegistryKey<World> world, Integer yaw, AccessLevel access) {
