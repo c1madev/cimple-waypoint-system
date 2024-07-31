@@ -67,7 +67,7 @@ public class WaypointSuggestionProvider implements SuggestionProvider<ServerComm
         }
         List<Waypoint> waypoints = WpsUtils.getAccessibleWaypoints(player,null, false, false);
         for (Waypoint waypoint : waypoints) {
-            if (removeImpossible && !waypoint.getName().startsWith(currentName))
+            if (removeImpossible && !waypoint.getName().toLowerCase().startsWith(currentName.toLowerCase()))
                 continue;
             if (predicate != null && !predicate.test(context.getSource(), waypoint))
                 continue;
