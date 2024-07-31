@@ -25,7 +25,8 @@ public class SpawnCommand {
         dispatcher.register(CommandManager.literal(COMMAND_NAME)
                 .executes(SpawnCommand::goSpawn)
                 .then(CommandManager.literal("help")
-                        .executes(SpawnCommand::help)));
+                        .executes(SpawnCommand::help)
+        ));
     }
 
     public static int goSpawn(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {

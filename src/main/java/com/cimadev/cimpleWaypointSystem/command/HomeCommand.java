@@ -45,27 +45,29 @@ public class HomeCommand {
         dispatcher.register(CommandManager.literal(COMMAND_NAME)
                 .executes(HomeCommand::homeGo)
                 .then(CommandManager.literal("here")
-                        .executes(HomeCommand::homeHere))
+                        .executes(HomeCommand::homeHere)
+                )
                 .then(CommandManager.literal("clear")
-                        .executes(HomeCommand::homeClear))
+                        .executes(HomeCommand::homeClear)
+                )
                 .then(CommandManager.literal("where?")
-                        .executes(HomeCommand::homeWhere))
+                        .executes(HomeCommand::homeWhere)
+                )
                 .then(CommandManager.literal("help")
-                        .executes(HomeCommand::homeHelp)));
-
-        //dispatcher.register(CommandManager.literal(COMMAND_NAME).then(CommandManager.literal("listAll").requires(source -> source.hasPermissionLevel(4)).executes(HomeCommand::homeListAll)));
-        dispatcher.register(CommandManager.literal(COMMAND_NAME)
+                        .executes(HomeCommand::homeHelp)
+                )
                 .then(CommandManager.literal("set")
                         .requires(source -> source.hasPermissionLevel(3))   // only admin and owner may set other's homes
                         .then(CommandManager.argument("position", BlockPosArgumentType.blockPos())
                                 .then(CommandManager.argument("world", DimensionArgumentType.dimension())
                                         .then(CommandManager.argument("player", word())
-                                                .executes(HomeCommand::homeSet)))))
+                                                .executes(HomeCommand::homeSet)
+                ))))
                 .then(CommandManager.literal("of")
                         .requires(source-> source.hasPermissionLevel(3))
                         .then(CommandManager.argument("owner", word())
-                        .executes(HomeCommand::homeOf))));
-
+                                .executes(HomeCommand::homeOf)
+                )));
     }
 
     public static int homeGo(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
