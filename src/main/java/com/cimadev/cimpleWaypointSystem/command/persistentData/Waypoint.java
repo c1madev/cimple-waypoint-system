@@ -129,16 +129,6 @@ public class Waypoint implements Comparable<Waypoint> {
     }
 
     private String wrapString(String s) {
-        boolean legalUnquoted = false; // Empty string needs to be quoted
-        for (char c : s.toCharArray()) {
-            legalUnquoted = com.mojang.brigadier.StringReader.isAllowedInUnquotedString(c);
-            if (!legalUnquoted) {
-                break;
-            }
-        }
-        if (legalUnquoted)
-            return s;
-        else
             return "\"" + s + "\"";
     }
 
