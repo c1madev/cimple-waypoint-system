@@ -11,7 +11,6 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.*;
-import net.minecraft.util.Formatting;
 
 public class TphereCommand {
     public static final SimpleCommandExceptionType SELF_TELEPORT_EXC = new SimpleCommandExceptionType(
@@ -29,35 +28,15 @@ public class TphereCommand {
         ));
     }
 
-    private static MutableText literalCommand(String command, String hover) {
-        return Text.literal(command).setStyle(Style.EMPTY
-                .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command))
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(hover)))
-        );
-    }
-
     public static int execute(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         final ServerPlayerEntity origin = context.getSource().getPlayerOrThrow(),
                 target = EntityArgumentType.getPlayer(context, "player");
         if (origin.equals(target)) {
             throw SELF_TELEPORT_EXC.create();
         }
-        TeleportRequestManager.getInstance().addRequest(new TeleportRequest(origin, target, true));
-        target.sendMessage(Text.literal("")
-                .append(origin.getName().copy().formatted(Colors.PLAYER))
-                .append(" wants to teleport ")
-                .append(Text.literal("you to them").formatted(Colors.SECONDARY))
-                .append("! Type ")
-                .append(literalCommand("/tpaccept", "Click to accept").formatted(Formatting.GREEN))
-                .append(" to accept or ")
-                .append(literalCommand("/tpdeny", "Click to deny").formatted(Formatting.RED))
-                .append(" to deny it. The request expires in ")
-                .append(Text.literal(Long.toString(TeleportRequestManager.getInstance().getRequestTTL()))
-                        .append(" seconds.")
-                        .formatted(Colors.TIME)
-                )
-                .formatted(Colors.DEFAULT)
-        );
+        final TeleportRequest request = new TeleportRequest(origin, target, true);
+        TeleportRequestManager.getInstance().addRequest(request);
+        TpaMessages.sendRequestMessages(request);
         context.getSource().sendFeedback(() ->
                 Text.literal("")
                         .append(target.getName().copy().formatted(Colors.PLAYER))

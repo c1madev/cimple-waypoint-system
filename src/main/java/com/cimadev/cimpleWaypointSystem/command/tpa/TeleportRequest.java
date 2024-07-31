@@ -32,6 +32,10 @@ public class TeleportRequest extends MINode {
                 return target;
         }
 
+        public boolean isInverted() {
+                return inverted;
+        }
+
         private void perform(PlayerEntity tpOrigin, PlayerEntity tpTarget) {
                 tpOrigin.teleport(
                         tpTarget.getServer().getWorld(tpTarget.getWorld().getRegistryKey()),
