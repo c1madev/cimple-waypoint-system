@@ -204,20 +204,6 @@ public class WpsCommand {
                                         .executes(WpsCommand::wpsSetHome)))
                 );
 
-        if (config.friendshipEnabled.get())
-            command = command.then(
-                    CommandManager.literal("friend")
-                    .then(CommandManager.literal("add")
-                            .then(CommandManager.argument("player", word())
-                                    .suggests(new OfflinePlayerSuggestionProvider())
-                                    .executes(WpsCommand::wpsAddFriend)))
-                    .then(CommandManager.literal("remove")
-                            .then(CommandManager.argument("player", word())
-                                    .suggests(new OfflinePlayerSuggestionProvider())
-                                    .executes(WpsCommand::wpsRemoveFriend)
-                    ))
-            );
-
         dispatcher.register(command);
 
         // administrator wps options
@@ -728,48 +714,6 @@ public class WpsCommand {
                     .formatted(DEFAULT_COLOR);
             messageText = () -> message;
             Main.serverState.markDirty();
-        }
-
-        context.getSource().sendFeedback(messageText, false);
-        return 1;
-    }
-
-    private static int wpsAddFriend(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        Supplier<Text> messageText;
-
-        ServerPlayerEntity p = context.getSource().getPlayerOrThrow();
-        OfflinePlayer player = Main.serverState.getPlayerByUuid(p.getUuid());
-        OfflinePlayer friend = OfflinePlayer.fromContext(context, "player");
-        if ( friend != null ) {
-            boolean newFriend = player.addFriend(friend);
-            if ( newFriend ) {
-                messageText = () -> Text.literal("You are now friends with " + friend.getName() + ".").formatted(DEFAULT_COLOR);
-            } else {
-                messageText = () -> Text.literal("You are already friends with " + friend.getName() + "!").formatted(DEFAULT_COLOR);
-            }
-        } else {
-            messageText = () -> Text.literal("The specified player could not be found.").formatted(DEFAULT_COLOR);
-        }
-
-        context.getSource().sendFeedback(messageText, false);
-        return 1;
-    }
-
-    private static int wpsRemoveFriend(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        Supplier<Text> messageText;
-
-        ServerPlayerEntity p = context.getSource().getPlayerOrThrow();
-        OfflinePlayer player = Main.serverState.getPlayerByUuid(p.getUuid());
-        OfflinePlayer friend = OfflinePlayer.fromContext(context, "player");
-        if ( friend != null ) {
-            boolean newFriend = player.removeFriend(friend);
-            if ( newFriend ) {
-                messageText = () -> Text.literal("You are no longer friends with " + friend.getName() + ".").formatted(DEFAULT_COLOR);
-            } else {
-                messageText = () -> Text.literal("You weren't friends with " + friend.getName() + "!").formatted(DEFAULT_COLOR);
-            }
-        } else {
-            messageText = () -> Text.literal("The specified player could not be found.").formatted(DEFAULT_COLOR);
         }
 
         context.getSource().sendFeedback(messageText, false);
