@@ -1,5 +1,6 @@
 package com.cimadev.cimpleWaypointSystem.command.persistentData;
 
+import com.cimadev.cimpleWaypointSystem.Colors;
 import com.cimadev.cimpleWaypointSystem.Main;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -13,15 +14,13 @@ import org.jetbrains.annotations.NotNull;
 import java.util.TreeSet;
 import java.util.UUID;
 
-import static com.cimadev.cimpleWaypointSystem.Main.DEFAULT_COLOR;
-import static com.cimadev.cimpleWaypointSystem.Main.LINK_INACTIVE_COLOR;
 
 public class OfflinePlayer implements Comparable<OfflinePlayer> {
 
     public static final DynamicCommandExceptionType INVALID_PLAYER_NAME = new DynamicCommandExceptionType(
             /*todo: change to PLAYER_COLOR*/
-            o -> Text.literal("Player ").append( Text.literal( o+"" ).formatted(LINK_INACTIVE_COLOR) )
-                    .append( " not found. Did they change their name?").formatted(DEFAULT_COLOR));
+            o -> Text.literal("Player ").append( Text.literal( o+"" ).formatted(Colors.LINK_INACTIVE) )
+                    .append( " not found. Did they change their name?").formatted(Colors.DEFAULT));
 
     private final UUID uuid;
     private String name;
