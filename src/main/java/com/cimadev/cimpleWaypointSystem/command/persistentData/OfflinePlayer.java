@@ -11,7 +11,6 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.TreeSet;
 import java.util.UUID;
 
 
@@ -24,7 +23,6 @@ public class OfflinePlayer implements Comparable<OfflinePlayer> {
 
     private final UUID uuid;
     private String name;
-    private final TreeSet<UUID> friends = new TreeSet<>();
 
     public UUID getUuid() {
         return this.uuid;
@@ -40,14 +38,6 @@ public class OfflinePlayer implements Comparable<OfflinePlayer> {
 
     public void emptyName() {
         this.name = "";
-    }
-
-    public boolean addFriend(OfflinePlayer friend) {
-        return friends.add(friend.getUuid());
-    }
-
-    public boolean removeFriend(OfflinePlayer notFriend) {
-        return friends.remove(notFriend.getUuid());
     }
 
     @Override
@@ -69,35 +59,12 @@ public class OfflinePlayer implements Comparable<OfflinePlayer> {
     OfflinePlayer( NbtCompound nbt ) {
         this.uuid = nbt.getUuid( "uuid" ); /*todo: check invalid uuid*/
         this.name = nbt.getString( "name" );
-
-        NbtCompound friendList = nbt.getCompound("friendList");
-        friendList.getKeys().forEach(key -> {
-            this.friends.add( UUID.fromString(key) );
-            this.friends.add( UUID.fromString(friendList.getString(key)) );
-        });
-    }
-
-    public boolean likes(UUID maybeFriend) {
-        if ( maybeFriend.equals(uuid) ) return true;
-        return friends.contains(maybeFriend);
     }
 
     public NbtCompound toNbt( ) {
         NbtCompound nbt = new NbtCompound();
         nbt.putUuid("uuid", uuid);
         nbt.putString("name", name);
-        int friendnum = friends.size();
-
-        NbtCompound friendList = new NbtCompound();
-        while( friends.size() > 1 ) {
-            friendList.putString( friends.pollFirst().toString() , friends.pollLast().toString() );
-        }
-        if (friendnum == 1) {
-            String lastUuid = friends.pollFirst().toString();
-            friendList.putString(lastUuid, lastUuid);
-        }
-
-        nbt.put("friendList", friendList);
         return nbt;
     }
 
