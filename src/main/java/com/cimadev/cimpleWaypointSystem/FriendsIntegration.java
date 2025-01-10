@@ -65,4 +65,10 @@ public abstract class FriendsIntegration {
             return false;
         }
     }
+
+    public static void sendFriendRequest(UUID from, UUID to) {
+        if (isInstalled()) {
+            getAPI().getRequestManager().addFriendRequest(new de.fisch37.fischyfriends.api.FriendRequest(from, to));
+        }
+    }
 }
