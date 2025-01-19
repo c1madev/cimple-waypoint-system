@@ -9,5 +9,6 @@ public class FriendsEntrypoint implements FischyFriendsEntrypoint {
     @Override
     public void onFriendsInitialised(FriendsAPI friendsAPI) {
         api = friendsAPI;
+        FriendsIntegration.executeDelayedActions();
     }
 }
