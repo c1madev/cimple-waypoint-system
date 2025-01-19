@@ -3,12 +3,12 @@ package com.cimadev.cimpleWaypointSystem.command.persistentData;
 import com.cimadev.cimpleWaypointSystem.FriendsIntegration;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.util.Pair;
 import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSortedMap;
@@ -88,9 +88,13 @@ public class DataFixer {
      * Otherwise, the data will be lost.
      */
     private static void FIX_transferFriendsToIntegration(NbtCompound input) {
+        // There is probably a bespoke data structure & algorithm that would cost less space & performance
+        // Given how little this method will be called (if ever, at all), I don't see a reason to figure it out.
+        Set<Pair<UUID, UUID>> friendProposals = new HashSet<>();
         input.getList("playerList", NbtElement.COMPOUND_TYPE).forEach(nbt -> {
             NbtCompound playerData = (NbtCompound) nbt;
             NbtCompound friendsList = playerData.getCompound("friendList"); // Yes this is correct
+            playerData.remove("friendList");
             UUID player = playerData.getUuid("uuid");
             // friendList is a compound and follows this pattern:
             /*
@@ -105,8 +109,20 @@ public class DataFixer {
                     .stream()
                     .flatMap(key -> Stream.of(key, friendsList.getString(key)))
                     .map(UUID::fromString)
-                    .forEach(targetFriend -> FriendsIntegration.sendFriendRequest(player, targetFriend));
-            playerData.remove("friendList");
+                    .filter(uuid -> !uuid.equals(player))
+                    .map(friend -> new Pair<>(player, friend))
+                    .forEach(pair -> {
+                        final Pair<UUID, UUID> opposite = new Pair<>(pair.getRight(), pair.getLeft());
+                        // If two people are each-other's friends we say that qualifies as a full friendship
+                        if (friendProposals.remove(opposite)) {
+                            FriendsIntegration.makeFriends(pair.getLeft(), pair.getRight());
+                        } else {
+                            friendProposals.add(pair);
+                        }
+                    });
         });
+        for (Pair<UUID, UUID> request : friendProposals) {
+            FriendsIntegration.sendFriendRequest(request.getLeft(), request.getRight());
+        }
     }
 }
